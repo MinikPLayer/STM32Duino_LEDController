@@ -10,8 +10,8 @@ class State_StaticColor : public State
   CRGB color;
   
 public:
-  State_StaticColor(CRGB* l, int n, CRGB clr)
-    :State(l,n)
+	State_StaticColor(CRGB* l, int n, CRGB clr)
+		:State(l, n, "Static color")
   {
     color = clr;
   }

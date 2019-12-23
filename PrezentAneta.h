@@ -3,6 +3,14 @@
 
 #include "Objects.h"
 
+enum States
+{
+	undefinied,
+	StaticColor,
+	Rainbow,
+	RisingAndFalling,
+	BurningDot,
+};
 
 void ChangeState(State* newState);
 void ChangeLED(int number, CRGB color, bool show = true);

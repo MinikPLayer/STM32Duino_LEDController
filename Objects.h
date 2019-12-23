@@ -9,12 +9,15 @@
 
 #define LED_PIN PA7
 #define NUM_LEDS 10
-#define BRIGHTNESS 255
+
 
 #define MAX_CMND_SIZE 100
 
+#define VERSION 0.3
+
 
 #include "State.h"
+extern int brightness;
 extern CRGB leds[NUM_LEDS];
 extern State* actualState;
 

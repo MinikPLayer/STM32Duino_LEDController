@@ -1,5 +1,5 @@
 #include "Util.h"
-
+#include "Commands.h"
 
 bool Equal(char* str1, int str1l, char* str2, int str2l)
 {
@@ -107,6 +107,21 @@ CRGB ParseStringToColor(char* str, int length)
 	return color;
 }
 
+struct Color
+{
+	CRGB color;
+	Argument name;
+
+	Color(const char* _name, CRGB _color)
+	{
+		name = Argument(_name);
+		color = _color;
+	}
+};
+
+const int colorsSize = 6;
+Color colors[colorsSize] = { Color("red", CRGB::Red), Color("blue",CRGB::Blue), Color("green", CRGB::Green), Color("yellow", CRGB::Yellow), Color("pink", CRGB::Pink), Color("white", CRGB::White) };
+
 CRGB FindColor(char* name, int length)
 {
 	if (length == 0)
@@ -119,7 +134,7 @@ CRGB FindColor(char* name, int length)
 		return ParseStringToColor(name, length);
 	}
 
-	if (Equal(name, length, "blue", 4))
+	/*if (Equal(name, length, "blue", 4))
 	{
 		return CRGB::Blue;
 	}
@@ -131,7 +146,17 @@ CRGB FindColor(char* name, int length)
 	{
 		return CRGB::Red;
 	}
+	else if(Equal(name, leng)*/
 
+	for (int i = 0; i < colorsSize; i++)
+	{
+		if (colors[i].name.Equals(name, length))
+		{
+			return colors[i].color;
+		}
+	}
+
+	Serial.println("#!Color not found");
 
 	return CRGB::Black;
 }

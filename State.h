@@ -12,10 +12,14 @@ public:
 
   bool updateLeds = false;
 
-  State(CRGB* leds_ptr, int num)
+  Argument name;
+
+  State(CRGB* leds_ptr, int num, const char* _name = "undefinied")
   {
     leds_count = num;
     leds = leds_ptr;
+
+	name = Argument(_name);
   }
 
   virtual void Start()

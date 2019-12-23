@@ -12,7 +12,7 @@ class State_Rainbow : public State
 
 public:
 	State_Rainbow(CRGB* l, int num, float _speed = 0.1)
-		:State(l, num)
+		:State(l, num, "Rainbow")
 	{
 		speed = _speed;
 	}

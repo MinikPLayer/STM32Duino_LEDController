@@ -61,6 +61,93 @@ public:
 		nameSize = size;
 		name = arg;
 	}
+
+	void Print()
+	{
+		for (int i = 0; i < nameSize; i++)
+		{
+			Serial.print(name[i]);
+		}
+	}
+
+	void Println()
+	{
+		Print();
+		Serial.println("");
+	}
+
+	bool Equals(char* str, int length)
+	{
+		if (length != nameSize)
+		{
+			return false;
+		}
+
+		for (int i = 0; i < length; i++)
+		{
+			if (str[i] != name[i])
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+};
+
+template<int T>
+class Arguments
+{
+	Argument args[T];
+
+
+public:
+	int size = 0;
+
+
+
+	Arguments()
+	{
+		size = 0;
+	}
+
+	/*Arguments(Argument &_args, int argSize)
+	{
+		if (argSize > T)
+		{
+			argSize = T;
+		}
+
+		for (int i = 0; i < argSize; i++)
+		{
+			args[i] = _args[i];
+		}
+
+		size = argSize;
+	}*/
+
+	Argument &operator[](int index)
+	{
+		if (index < 0 || index >= T)
+		{
+			Serial.println("$ArgumentOutOfRangeException");
+			//return Argument("", 0);
+			Argument arg("");
+			return arg;
+		}
+
+		if (index >= size)
+		{
+			size = index + 1;
+		}
+
+		return args[index];
+	}
+
+	void set(int index, Argument value)
+	{
+
+	}
 };
 
 extern const int commandsSize;

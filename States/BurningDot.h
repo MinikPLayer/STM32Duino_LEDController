@@ -2,6 +2,7 @@
 #define _BURNINGDOT_H
 
 #include "../Objects.h"
+#include "../Util.h"
 
 class State_BurningDot : public State
 {
@@ -19,7 +20,7 @@ class State_BurningDot : public State
 
 public:
 	State_BurningDot(CRGB* l, int n, CRGB clrs[], int clrs_size, float _speed = 100, float _dimming = 0.25)
-		:State(l,n)
+		:State(l,n, "Burning dot")
 	{
 
 		speed = _speed;
@@ -81,7 +82,7 @@ public:
 
 	bool SendParameter(Argument param, Argument value)
 	{
-		if (IsCommand("-addcolor", 7, param.name, param.nameSize))
+		if (IsCommand("-addcolor", 9, param.name, param.nameSize))
 		{
 			CRGB c = FindColor(value.name, value.nameSize);
 
@@ -101,6 +102,16 @@ public:
 
 			return true;
 		}
+		else if (IsCommand("-speed", 6, param.name, param.nameSize))
+		{
+			int val = StringToInt(value.name, value.nameSize);
+
+			speed = val / 100.0;
+
+			return true;
+		}
+
+		Serial.println("#!Parameter not found");
 
 		return false;
 	}

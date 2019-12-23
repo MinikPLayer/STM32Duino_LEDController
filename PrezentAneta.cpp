@@ -4,6 +4,7 @@
 
 #include "States.h"
 
+#include "Configurator.h"
 
 
 
@@ -11,21 +12,23 @@ void ChangeState(State* newState)
 {
 	if(actualState == NULL)
 	{
-		Serial.println("I won't delete old object, because why bother??");
+		//Serial.println("I won't delete old object, because why bother??");
 
 		actualState = newState;
 	}
 	else
 	{
-		Serial.println("Deleting old state");
+		//Serial.println("Deleting old state");
 
 		delete actualState;
 		actualState = newState;
 	}
 
+	fill_solid(leds, NUM_LEDS, CRGB::Black);
+
 	newState->Start();
 
-	fill_solid(leds, NUM_LEDS, CRGB::Black);
+	
 }
 
 void ChangeLED(int number, CRGB color, bool show)
@@ -46,6 +49,28 @@ void ChangeLED(int number, CRGB color, bool show)
 		FastLED.show();
 	}
 }
+int ReadEEPROM(int slot, int defaultValue = 0)
+{
+	int val = Configurator::Read(slot);
+	if (val > 255)
+	{
+		val = defaultValue;
+		Configurator::Write(slot, defaultValue);
+	}
+
+	return val;
+}
+
+States defaultState = States::undefinied;
+void LoadConfig()
+{
+	brightness = ReadEEPROM(EEPROM_SLOT_BRIGHTNESS, 255);
+	if (brightness == 0) brightness = 255;
+
+	defaultState = (States)ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE);
+}
+
+
 
 
 void _setup() 
@@ -59,8 +84,10 @@ void _setup()
 	// put your setup code here, to run once:
 	pinMode(13, OUTPUT);
 
+	LoadConfig();
+
 	FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-	FastLED.setBrightness(BRIGHTNESS);
+	FastLED.setBrightness(brightness);
 
 	FastLED.clear();
 	FastLED.show();
@@ -70,7 +97,7 @@ void _setup()
 	//actualState = new StaticColor((CRGB**)&leds, NUM_LEDS);
 	//ChangeState(new State_StaticColor(leds, NUM_LEDS, CRGB(0,0,255)));
 	//ChangeState(new State_RisingAndFalling(leds, NUM_LEDS, Array<CRGB>{ CRGB(255,0,0), CRGB(0, 255, 0), CRGB(0,0,254) }, 200));
-	ChangeState(new State_Rainbow(leds, NUM_LEDS, 0.1));
+	//ChangeState(new State_Rainbow(leds, NUM_LEDS, 0.1));
 	//CRGB colors[] = { CRGB::Red, CRGB::Blue, CRGB::Yellow };
 	//ChangeState(new State_BurningDot(leds, NUM_LEDS, colors, 3, 50, 0.35));
   

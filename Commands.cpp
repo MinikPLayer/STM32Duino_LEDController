@@ -5,8 +5,12 @@
 
 #include "Util.h"
 
-const int commandsSize = 5;
-Command commands[commandsSize] = {"ping", "test", "chmode", "brightness", "sendparam"};
+#include <EEPROM.h>
+
+int brightness = 255;
+
+const int commandsSize = 6;
+Command commands[commandsSize] = {"test", "info", "chmode", "brightness", "sendparam", "eeprom"};
 
 bool IsCommand(char* ogCmd, int ogSize, char* checkCmd, int checkSize)
 {
@@ -20,6 +24,14 @@ bool IsCommand(char* ogCmd, int ogSize, char* checkCmd, int checkSize)
 		}
     
 		if(ogCmd[i] != checkCmd[i])
+		{
+			return false;
+		}
+	}
+
+	if (checkSize > ogSize)
+	{
+		if (checkCmd[ogSize] != ' ')
 		{
 			return false;
 		}
@@ -219,34 +231,139 @@ bool ChangeMode(char* name, int nameSize)
 	}
 	else if (IsCommand("solid", 5, name, nameSize))
 	{
-		ChangeState(new State_StaticColor(leds, NUM_LEDS, CRGB::Green));
+		int lastArg = -1;
+		CRGB color = CRGB::Green;
+
+		for (int i = 0; i < argSize; i++)
+		{
+			if (args[i].nameSize == 0) continue;
+
+			if (args[i].name[0] == '-')
+			{
+				if (IsCommand("-color", 6, args[i].name, args[i].nameSize))
+				{
+					lastArg = 1;
+				}
+			}
+			else
+			{
+				switch (lastArg)
+				{
+				case 1: // color
+				{
+					color = FindColor(args[i].name, args[i].nameSize);
+
+
+					lastArg = -1;
+					break;
+				}
+					
+
+				default:
+					Serial.println("Unknown argument");
+					return false;
+				}
+			}
+
+
+		}
+
+		ChangeState(new State_StaticColor(leds, NUM_LEDS, color));
 		return true;
 	}
 
 	return false;
 }
 
+template<int SIZE>
+Arguments<SIZE> GetArguments(char* args, int size)
+{
+
+	Arguments<SIZE> ret;
+
+	if (size == 0)
+	{
+		return ret;
+	}
+
+	int it = 1;
+	ret[0].name = args;
+	for (int i = 0; i < size; i++)
+	{
+		if (args[i] == ' ')
+		{
+			ret[it].name = args + i + 1;
+			it++;
+		}
+		else
+		{
+			ret[it - 1].nameSize++;
+		}
+	}
+
+	return ret;
+}
+
 int ReactToCommand(char* cmnd, int size)
 {
-	Serial.print("Command: \"");
-	for(int i = 0;i<size;i++)
+	if (size == 0) return false;
+	bool debugCmnd = false;
+	if (cmnd[0] == '!')
 	{
-		Serial.print(cmnd[i]);
+		debugCmnd = true;
+
+		Serial.print("Command: \"");
+		for(int i = 0;i<size;i++)
+		{
+			Serial.print(cmnd[i]);
+		}
+		Serial.println("\"");
+
+		cmnd++;
+		size--;
 	}
-	Serial.println("\"");
+
 
 
 	for(int i = 0;i<commandsSize;i++)
 	{
 		if(IsCommand(commands[i], cmnd, size))
 		{
-			char* args = cmnd + commands[i].nameSize + 1; // space
-			int argSize = size - commands[i].nameSize - 1; // space
+			char* args = cmnd + commands[i].nameSize; 
+			int argSize = size - commands[i].nameSize; 
+
+			if (argSize != 0) // space after
+			{
+				args++;
+				argSize--;
+			}
+
+			//Serial.print("Arg size: ");
+			//Serial.println(argSize);
+
+			Arguments<20> a = GetArguments<20>(args, argSize);
+			//Serial.print("a.size: ");
+			//Serial.println(a.size);
+
+			if (debugCmnd)
+			{
+				for (int i = 0; i < a.size; i++)
+				{
+					Serial.print(i);
+					Serial.print(") \"");
+					for (int k = 0; k < a[i].nameSize; k++)
+					{
+						Serial.print(a[i].name[k]);
+					}
+					Serial.println("\"");
+				}
+			}
+
 
 			switch(i)
 			{
-				case 0: // Ping
-					Serial.print("Pong! \"");
+				case 0: // Test
+					Serial.println("Test");
 					for (int i = 0; i < argSize; i++)
 					{
 						Serial.print(args[i]);
@@ -254,8 +371,17 @@ int ReactToCommand(char* cmnd, int size)
 					Serial.println("\"");
 					return true;
 
-				case 1: // Test
-					Serial.println("Test");
+				case 1: // Info
+					Serial.println("|===================");
+					Serial.println("| M-LED's controller");
+					Serial.print("| Version: ");
+					Serial.println(VERSION);
+					Serial.println("| Author: Minik");
+					Serial.println("| -------------------");
+					Serial.print("| Actual state: ");
+					actualState->name.Println();
+
+					Serial.println("|===================");
 					return true;
 
 				case 2: // Change Mode
@@ -292,9 +418,84 @@ int ReactToCommand(char* cmnd, int size)
 
 				case 4: // send parameter 
 				{
-					Argument arg(args, argSize);
 
-					break;
+					if (a.size < 2)
+					{
+						Serial.println("#!TooLittleArguments");
+						return false;
+					}
+
+					bool r = actualState->SendParameter(a[0], a[1]);
+					if (r == false)
+					{
+						Serial.println("#!Cannot send parameter, it may be caused by an error or wrong command / parameter");
+						return false;
+					}
+
+					return true;
+				}
+
+				case 5: // EEPROM
+				{
+					if (a.size == 0)
+					{
+						Serial.println("#!NoArgumentsSpecified");
+						return false;
+					}
+
+					if (IsCommand("write", 5, a[0].name, a[0].nameSize))
+					{
+						if (a.size < 3)
+						{
+							Serial.println("#!TooLittleArgumentsSpecified");
+							return false;
+						}
+
+						int addr = StringToInt(a[1].name, a[1].nameSize);
+						if (addr < 0)
+						{
+							Serial.println("#!BadAddress");
+							return false;
+						}
+
+						int val = StringToInt(a[2].name, a[2].nameSize);
+						if (val < 0)
+						{
+							Serial.println("#!BadValue");
+							return false;
+						}
+						if (val > 255)
+						{
+							Serial.println("#!TooBigValue");
+							return false;
+						}
+
+						EEPROM.update(addr, (unsigned char)val);
+
+						Serial.println("Written data");
+					}
+					else if (IsCommand("read", 4, a[0].name, a[0].nameSize))
+					{
+						if (a.size < 2)
+						{
+							Serial.println("#!TooLittleArgumentsSpecified");
+							return false;
+						}
+
+						int addr = StringToInt(a[1].name, a[1].nameSize);
+						if (addr < 0)
+						{
+							Serial.println("#!BadAddress");
+							return false;
+						}
+
+						int val = (int)(EEPROM.read(addr));
+
+						Serial.print("Readed data: ");
+						Serial.println(val);
+					}
+
+					return true;
 				}
 			}
 		}
