@@ -2,10 +2,6 @@
 
 #include <EEPROM.h>
 
-
-
-
-
 const static int slotsSize = 3;
 Slot slots[slotsSize] = { Slot("brightness", EEPROM_SLOT_BRIGHTNESS), Slot("defaultmode", EEPROM_SLOT_DEFAULT_MODE), Slot("defaultmodeparam1", EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1) };
 
@@ -22,17 +18,27 @@ int FindSlot(char* name, int length)
 	return -1;
 }
 
-void Configurator::Write(int slot, unsigned char value)
+void Configurator::Write(int slot, int value)
 {
+	if (value > 255)
+	{
+		Serial.println("#@[EEPROM]TooBigValue");
+		value = 254;
+	}
+	if (value < 0)
+	{
+		Serial.println("#@[EEPROM]TooSmallValue");
+		value = 0;
+	}
 	EEPROM.update(slot, value);
 }
 
-void Configurator::Write(Slot slot, unsigned char value)
+void Configurator::Write(Slot slot, int value)
 {
 	Write(slot.slot, value);
 }
 
-bool Configurator::Write(char* slotname, int slotNameLength, unsigned char value)
+bool Configurator::Write(char* slotname, int slotNameLength, int value)
 {
 	int slot = FindSlot(slotname, slotNameLength);
 	if (slot == -1)

@@ -7,13 +7,17 @@ class State_StaticColor : public State
   float mil = 0;
   int pos = 0;
 
-  CRGB color;
+  
   
 public:
+	CRGB color;
+
 	State_StaticColor(CRGB* l, int n, CRGB clr)
-		:State(l, n, "Static color")
+		:State(l, n, 1, "Static")
   {
     color = clr;
+
+	params[0] = Argument("color");
   }
 
   void Start()
@@ -46,6 +50,37 @@ public:
       }
       mil = 0;
     }*/
+  }
+
+  bool SetParameter(Argument param, Argument value)
+  {
+
+	  if (param == params[0]) // Color
+	  {
+		  CRGB clr = ParseStringToColor(value);
+		  color = clr;
+
+		  Start();
+		  return true;
+	  }
+
+	  return false;
+  }
+
+  bool GetParameter(Argument parameter)
+  {
+
+	  if (parameter == params[0]) // Color
+	  {
+		  char arr[] = "             ";
+		  Argument a(arr, 13);
+		  ParseColorToString(color, a);
+		  Serial.print("| ");
+		  a.Println();
+		  return true;
+	  }
+
+	  return false;
   }
 };
 

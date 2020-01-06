@@ -5,10 +5,7 @@
 
 class State_RisingAndFalling : public State
 {
-	const static int MAX_COLORS = 10;
 
-	CRGB colors[MAX_COLORS];
-	int colorSize = 0;
 
 
 	int pos = 0;
@@ -16,15 +13,19 @@ class State_RisingAndFalling : public State
 
 	int color = 0;
 
-	int delay = 1000;
+	
 
 	bool rising = true;
 
 public:
-	
+	const static int MAX_COLORS = 10;
 
-	State_RisingAndFalling(CRGB* ptr, int num, CRGB clrs[], int clrs_size, int _delay = 1000)
-		:State(ptr, num)
+	CRGB colors[MAX_COLORS];
+	int colorSize = 0;
+	int delay = 1000;
+
+	State_RisingAndFalling(CRGB* ptr, int num, CRGB clrs[], int clrs_size, int _delay = 50)
+		:State(ptr, num, 3, "Rising And Falling")
 	{
 		//colors = clrs;
 		for (int i = 0; i < clrs_size && i < MAX_COLORS;i++)
@@ -39,6 +40,9 @@ public:
 		}
 
 		delay = _delay;
+
+		params[0] = "delay";
+		params[1] = "colors";
 	}
 
 	void NextColor()
@@ -89,6 +93,42 @@ public:
 		}
 
 		
+	}
+
+	bool SetParameter(Argument param, Argument value)
+	{
+
+		if (param == params[0]) // Delay
+		{
+			int val = StringToInt(value.name, value.nameSize);
+			if (val == -1)
+			{
+				return false;
+			}
+			delay = val * 10;
+			return true;
+		}
+		if (param == params[1]) // colors
+		{
+			
+		}
+		return false;
+	}
+
+	bool GetParameter(Argument parameter)
+	{
+		if (parameter == params[0]) // Delay
+		{
+			char arr[] = "   ";
+			Argument a(arr, 3);
+
+			ByteToString(delay / 10, a);
+			Serial.print("| ");
+			a.Println();
+			return true;
+		}
+
+		return false;
 	}
 };
 

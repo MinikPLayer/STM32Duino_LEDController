@@ -8,19 +8,24 @@ class State_BurningDot : public State
 {
 	double mil = 0;
 
-	float speed = 0;
-	float dimming = 0.25;
+
 
 	int pos = 0;
+
+
+	int color = 0;
+
+public:
+	float speed = 0;
+	float dimming = 0.25;
 
 	const static int MAX_COLORS = 10;
 	CRGB colors[MAX_COLORS];
 	int colors_size;
-	int color = 0;
 
-public:
+
 	State_BurningDot(CRGB* l, int n, CRGB clrs[], int clrs_size, float _speed = 100, float _dimming = 0.25)
-		:State(l,n, "Burning dot")
+		:State(l,n, 4, "Burning dot")
 	{
 
 		speed = _speed;
@@ -80,7 +85,7 @@ public:
 		updateLeds = true;
 	}
 
-	bool SendParameter(Argument param, Argument value)
+	bool SetParameter(Argument param, Argument value)
 	{
 		if (IsCommand("-addcolor", 9, param.name, param.nameSize))
 		{

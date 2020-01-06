@@ -1,27 +1,46 @@
 #ifndef _OBJECTS_H
 #define _OBJECTS_H
-#include <cstdarg>
-
 
 #include <FastLED.h>
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
 #define LED_PIN PA7
-#define NUM_LEDS 10
+#define BRIGHTNESS_PIN PA0
+#define BRIGHTNESS_POTENTIOMETER_INPUT_PIN PC14
+#define NUM_LEDS 9
+
+#define BAUDRATE 115200
 
 
-#define MAX_CMND_SIZE 100
+#define MAX_CMND_SIZE 150
 
 #define VERSION 0.3
+
+#define MAX_PRESETS 5
+#define PRESET_SEPARATION 100
 
 
 #include "State.h"
 extern int brightness;
 extern CRGB leds[NUM_LEDS];
 extern State* actualState;
+extern int currentPreset;
 
-#include <initializer_list>
+
+
+
+enum States
+{
+	undefinied,
+	StaticColor,
+	Rainbow,
+	RisingAndFalling,
+	BurningDot,
+	Breathing,
+};
+
+#endif
 
 /*template<typename T>
 class Array
@@ -118,5 +137,3 @@ public:
 	}
 };*/
 
-
-#endif

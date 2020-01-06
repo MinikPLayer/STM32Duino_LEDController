@@ -93,6 +93,32 @@ public:
 
 		return true;
 	}
+
+	bool Compare(Argument a)
+	{
+		if (a.nameSize != nameSize) return false;
+
+		for (int i = 0; i < nameSize; i++)
+		{
+			if (name[i] != a.name[i])
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool operator==(const Argument& a)
+	{
+		return Compare(a);
+	}
+
+	bool operator==(const char* a)
+	{
+		Argument arg(a);
+
+		return Compare(arg);
+	}
 };
 
 template<int T>
@@ -142,11 +168,6 @@ public:
 		}
 
 		return args[index];
-	}
-
-	void set(int index, Argument value)
-	{
-
 	}
 };
 

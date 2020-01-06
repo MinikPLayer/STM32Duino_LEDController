@@ -5,6 +5,7 @@
 #include "States/Rainbow.h"
 #include "States/RisingAndFalling.h"
 #include "States/StaticColor.h"
+#include "States/Breathing.h"
 
 #endif // !_STATES_H
 

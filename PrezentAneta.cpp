@@ -1,3 +1,4 @@
+#include "Objects.h"
 #include "PrezentAneta.h"
 #include "Commands.h"
 #include "Util.h"
@@ -49,47 +50,52 @@ void ChangeLED(int number, CRGB color, bool show)
 		FastLED.show();
 	}
 }
-int ReadEEPROM(int slot, int defaultValue = 0)
-{
-	int val = Configurator::Read(slot);
-	if (val > 255)
-	{
-		val = defaultValue;
-		Configurator::Write(slot, defaultValue);
-	}
 
-	return val;
-}
 
 States defaultState = States::undefinied;
-void LoadConfig()
-{
-	brightness = ReadEEPROM(EEPROM_SLOT_BRIGHTNESS, 255);
-	if (brightness == 0) brightness = 255;
-
-	defaultState = (States)ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE);
-}
-
 
 
 
 void _setup() 
 {
 
-	Serial.begin(115200);
-
+	Serial.begin(BAUDRATE);
+	//while (!Serial);
 	//while (!Serial);
 	//display_allocInfo();
 
 	// put your setup code here, to run once:
 	pinMode(13, OUTPUT);
+	pinMode(BRIGHTNESS_PIN, INPUT_PULLUP);
+	pinMode(BRIGHTNESS_POTENTIOMETER_INPUT_PIN, OUTPUT); digitalWrite(BRIGHTNESS_POTENTIOMETER_INPUT_PIN, HIGH);
 
-	LoadConfig();
+	//while (!Serial);
 
-	FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-	FastLED.setBrightness(brightness);
-
+	FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);//.setCorrection(TypicalLEDStrip);
+	//FastLED.setBrightness(brightness);
 	FastLED.clear();
+
+
+	if (digitalRead(PB3) != LOW)
+	{ 
+		currentPreset = Configurator::Read(EEPROM_DEFAULT_PRESET);
+		if (currentPreset >= MAX_PRESETS)
+		{
+			currentPreset = 0;
+			Configurator::Write(EEPROM_DEFAULT_PRESET, 0);
+		}
+
+		LoadConfig();
+	}
+	else
+	{
+		brightness = 255;
+		//defaultState = States::Rainbow;
+		ChangeState(new State_Rainbow(leds, NUM_LEDS));
+	}
+	
+
+
 	FastLED.show();
 
 	//FastLED.clear();
@@ -109,7 +115,7 @@ void _setup()
 
 	Serial.println("READY");
 
-	actualState->Start();
+	//actualState->Start();
 }
 
 long long int lastMicros = 0;
@@ -129,6 +135,7 @@ void CheckSerial()
 	{
 		while(serialPos != MAX_CMND_SIZE)
 		{
+			if (!Serial.available()) return;
 			char c = Serial.read();
 
 			if(c == '\n')
@@ -137,7 +144,6 @@ void CheckSerial()
 				{
 					return;
 				}
-        
 				break;
 			}
 
@@ -147,7 +153,7 @@ void CheckSerial()
 
 		if(serialPos == MAX_CMND_SIZE)
 		{
-			Serial.println("!Overflow");
+			Serial.println("!CommandOverflow");
 			serialPos = 0;
 			return;
 		}
@@ -159,34 +165,128 @@ void CheckSerial()
 			int result = ReactToCommand(&command[1], serialPos - 1);
 			if (result == false)
 			{
-				Serial.println("!BadSyntax");
+				Serial.println("!BadCommandSyntax");
 			}
 			else if (result == 2)
 			{
-				Serial.println("!NotFound");
+				Serial.println("!CommandNotFound");
 			}
 			else if (result == 3)
 			{
-				Serial.println("!BadArgs");
+				Serial.println("!CommandBadArgs");
 			}
 			else if (result == true)
 			{
-				Serial.println("OK");
+				Serial.println("=OK");
 			}
 			else
 			{
-				Serial.print("!OtherError:");
+				Serial.print("!CommandOtherError:");
 				Serial.println(result);
 			}
 		}
 		else
 		{
-			Serial.println("!NoPlusSign");
+			Serial.println("!CommandNoPlusSign");
 		}
     
 
 		serialPos = 0;								
 	}
+
+
+}
+
+int lastState = 255;
+uint32 lastMax = 0;
+uint32 lastMin = 0;
+
+bool wasMax = false;
+bool wasMin = false;
+void CheckBrightness()
+{
+	if (!physicalBrightnessControlEnabled) return;
+
+	int bright = analogRead(BRIGHTNESS_PIN) / 16;
+	//Serial.print("Bright pin: ");
+	//Serial.println(bright);
+
+
+	//Serial.println(bright);
+	//Serial.print(lastMin);
+	//Serial.print(", ");
+	//Serial.println(lastMax);
+	if (bright > 250)
+	{
+		if (!wasMax)
+		{
+			lastMax = millis();
+
+			if (abs(lastMax - lastMin) < 4000)
+			{
+				if (!(lastMax == 0 || lastMin == 0))
+				{
+					currentPreset++;
+					if (currentPreset >= MAX_PRESETS)
+					{
+						currentPreset = 0;
+					}
+
+					LoadConfig();
+
+					lastMin = 0;
+					lastMax = 0;
+				}
+			}
+			wasMax = true;
+		}
+	}
+	else
+	{
+		wasMax = false;
+	}
+	if (bright < 5)
+	{
+		if (!wasMin)
+		{
+			lastMin = millis();
+
+			if (abs(lastMin - lastMax) < 4000 && !wasMin)
+			{
+				if (!(lastMax == 0 || lastMin == 0))
+				{
+					currentPreset--;
+					if (currentPreset < 0)
+					{
+						currentPreset = MAX_PRESETS - 1;
+					}
+
+					LoadConfig();
+
+					lastMin = 0;
+					lastMax = 0;
+				}
+			}
+			wasMin = true;
+		}
+	}
+	else
+	{
+		wasMin = false;
+	}
+	
+	int diff = abs(lastState - bright);
+	if (diff < 5 && !(bright == 0 && lastState != 0))
+	{
+		return;
+	}
+
+	lastState = bright;
+	brightness = bright;
+
+
+	FastLED.setBrightness(bright);
+	FastLED.show();
 
 
 }
@@ -211,6 +311,7 @@ void _loop() {
 		Serial.println("STATE IS NULL");
 	}
 
+	CheckBrightness();
 	CheckSerial();
 
 	int res = micros() - lastMicros;
@@ -226,4 +327,6 @@ void _loop() {
 		FastLED.show();
 		actualState->updateLeds = false;
 	}
+
+	delay(2);
 }
