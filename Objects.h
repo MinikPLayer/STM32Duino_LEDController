@@ -8,14 +8,14 @@
 #define LED_PIN PA7
 #define BRIGHTNESS_PIN PA0
 #define BRIGHTNESS_POTENTIOMETER_INPUT_PIN PC14
-#define NUM_LEDS 9
+#define NUM_LEDS 15
 
 #define BAUDRATE 115200
 
 
 #define MAX_CMND_SIZE 150
 
-#define VERSION 0.3
+#define VERSION "0.40a2"
 
 #define MAX_PRESETS 5
 #define PRESET_SEPARATION 100
@@ -136,4 +136,3 @@ public:
 		}
 	}
 };*/
-

@@ -110,7 +110,39 @@ public:
 		}
 		if (param == params[1]) // colors
 		{
-			
+			String color = "";
+			int it = 0;
+			for(int i = 0;i<value.nameSize;i++)
+			{
+				if(value.name[i] == ';')
+				{
+					CRGB clr = ParseStringToColor(color.c_str());
+					colors[it] = clr;
+					it++;
+					if(it >= MAX_COLORS)
+					{
+						Serial.println("#!TooMuchColors");
+						return false;
+					}
+					color.remove(0);
+				}
+				else
+				{
+					color += value.name[i];
+				}
+				
+			}
+
+			if(color.length() != 0)
+			{
+				CRGB clr = ParseStringToColor(color.c_str());
+				colors[it] = clr;
+				it++;
+			}
+
+			colorSize = it;
+
+			return true;
 		}
 		return false;
 	}
@@ -125,6 +157,23 @@ public:
 			ByteToString(delay / 10, a);
 			Serial.print("| ");
 			a.Println();
+			return true;
+		}
+		else if(parameter == params[1]) // colors
+		{
+			Serial.print("| ");
+			for(int i = 0;i<colorSize;i++)
+			{
+				char arr[] = "            "; 
+				Argument colStr(arr, 13);
+
+				ParseColorToString(colors[i], colStr);
+
+				colStr.Print();
+				Serial.print(';');
+			}
+			Serial.println("");
+
 			return true;
 		}
 

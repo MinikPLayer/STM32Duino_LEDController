@@ -1,6 +1,6 @@
 #include "Commands.h"
 #include "Objects.h"
-#include "PrezentAneta.h"
+#include "LEDController.h"
 #include "States.h"
 
 #include "Util.h"
@@ -11,8 +11,8 @@
 
 
 
-const int commandsSize = 9;
-Command commands[commandsSize] = {"test", "info", "set", "get", "setparam", "eeprom", "save", "getparam", "load"};
+const int commandsSize = 11;
+	Command commands[commandsSize] = {"test", "info", "set", "get", "setparam", "eeprom", "save", "getparam", "load", "easter", "juli"};
 
 
 
@@ -522,12 +522,12 @@ int ReactToCommand(char* cmnd, int size)
 			switch(i)
 			{
 				case 0: // Test
-					Serial.println("Test");
+					/*Serial.println("Test");
 					for (int i = 0; i < argSize; i++)
 					{
 						Serial.print(args[i]);
 					}
-					Serial.println("\"");
+					Serial.println("\"");*/
 					return true;
 
 				case 1: // Info
@@ -746,6 +746,13 @@ int ReactToCommand(char* cmnd, int size)
 
 						return true;
 					}
+					else if(a[0] == "ledC")
+					{
+						Serial.print("| ");
+						Serial.println(NUM_LEDS);
+
+						return true;
+					}
 
 					return false;
 				}
@@ -896,6 +903,41 @@ int ReactToCommand(char* cmnd, int size)
 
 					LoadConfig();
 					return true;
+				}
+				case 9: // easter :)
+				{
+					Serial.println("# I <3 KFC :3");
+					return true;
+				}
+				case 10: // juli ;)
+				{
+					char juli[] = "Srcgudzldp vxshu Mxolwh";
+
+					char ch;
+					const int key = 3;
+					for(int i = 0; juli[i] != '\0'; ++i) 
+					{
+						ch = juli[i];
+						if(ch >= 'a' && ch <= 'z') 
+						{
+							ch = ch - key;
+							if(ch < 'a'){
+							ch = ch + 'z' - 'a' + 1;
+							}
+							juli[i] = ch;
+						}
+						else if(ch >= 'A' && ch <= 'Z') 
+						{
+							ch = ch - key;
+							if(ch < 'A') {
+							ch = ch + 'Z' - 'A' + 1;
+							}
+							juli[i] = ch;
+						}
+					}
+
+					Serial.print(juli);
+					Serial.println("! ^^");
 				}
 				
 			}

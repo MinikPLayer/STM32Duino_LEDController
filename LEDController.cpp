@@ -1,5 +1,5 @@
 #include "Objects.h"
-#include "PrezentAneta.h"
+#include "LEDController.h"
 #include "Commands.h"
 #include "Util.h"
 
@@ -7,6 +7,7 @@
 
 #include "Configurator.h"
 
+#include <Arduino.h>
 
 
 void ChangeState(State* newState)

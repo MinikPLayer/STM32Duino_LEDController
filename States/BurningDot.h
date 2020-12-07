@@ -80,9 +80,11 @@ public:
 				NextColor();
 				pos = 0;
 			}
+
+			updateLeds = true;
 		}
 
-		updateLeds = true;
+		
 	}
 
 	bool SetParameter(Argument param, Argument value)
