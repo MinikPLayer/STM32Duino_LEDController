@@ -6,16 +6,23 @@
 #define COLOR_ORDER GRB
 
 #define LED_PIN PA7
+
+#define POTENTIOMETER_ENABLED false
 #define BRIGHTNESS_PIN PA0
 #define BRIGHTNESS_POTENTIOMETER_INPUT_PIN PC14
-#define NUM_LEDS 15
+
+#define DEVICE_NAME "Plumbob"
+#define NUM_LEDS 18
+
+//#define DEVICE_NAME "PC LED's"
+//#define NUM_LEDS 15
 
 #define BAUDRATE 115200
 
 
 #define MAX_CMND_SIZE 150
 
-#define VERSION "0.40a2"
+#define VERSION "0.40b1"
 
 #define MAX_PRESETS 5
 #define PRESET_SEPARATION 100
@@ -38,6 +45,7 @@ enum States
 	RisingAndFalling,
 	BurningDot,
 	Breathing,
+	Gradient,
 };
 
 #endif

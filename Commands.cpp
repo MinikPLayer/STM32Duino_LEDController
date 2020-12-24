@@ -190,6 +190,9 @@ bool ChangeMode(char* name, int nameSize)
 		CRGB colors[State_BurningDot::MAX_COLORS] = { CRGB::Red, CRGB::Green, CRGB::Blue };
 		int colorsSize = 0;
 
+    float speed = 50;
+    float dimming = 0.35;
+
 
 		int argState = -1;
 		for (int i = 0; i < argSize; i++)
@@ -199,9 +202,11 @@ bool ChangeMode(char* name, int nameSize)
 			if (args[i].name[0] == '-')
 			{
 				if (IsCommand("-colors", 7, args[i].name, args[i].nameSize))
-				{
 					argState = 1;
-				}
+        else if(IsCommand("-speed", 6, args[i].name, args[i].nameSize))
+          argState = 2;
+        else if(IsCommand("-dimming", 8, args[i].name, args[i].nameSize))
+          argState = 3;
 			}
 			else
 			{
@@ -234,6 +239,20 @@ bool ChangeMode(char* name, int nameSize)
 
 					break;
 				}
+        case 2: // speed
+        {
+          int val = StringToInt(args[i].name, args[i].nameSize);
+
+          speed = val / 100.f;
+          break;
+        }
+        case 3: // dimming
+        {
+          int val = StringToInt(args[i].name, args[i].nameSize);
+
+          dimming = val / 100.f;
+          break;
+        }
 
 				default:
 					Serial.println("#Bad function parameter");
@@ -247,7 +266,7 @@ bool ChangeMode(char* name, int nameSize)
 		{
 			colorsSize = 3;
 		}
-		ChangeState(new State_BurningDot(leds, NUM_LEDS, colors, colorsSize, 50, 0.35));
+		ChangeState(new State_BurningDot(leds, NUM_LEDS, colors, colorsSize, speed, dimming));
 		return true;
 	}
 	else if (IsCommand("static", 6, name, nameSize) || IsCommand("solid", 5, name, nameSize))
@@ -430,6 +449,68 @@ bool ChangeMode(char* name, int nameSize)
 		ChangeState(new State_Breathing(leds, NUM_LEDS, speed));
 		return true;
 	}
+  else if(IsCommand("gradient", 8, name, nameSize))
+  {
+     int lastArg = -1;
+     CRGB colors[2];
+     colors[0] = CRGB(255,0,0);
+     colors[1] = CRGB(0,0,255);
+     bool smooth = false;
+     for (int i = 0; i < argSize; i++)
+     {
+        if (args[i].nameSize == 0) continue;
+  
+        if (args[i].name[0] == '-')
+        {
+          if (IsCommand("-color1", 7, args[i].name, args[i].nameSize))
+          {
+            lastArg = 1;
+          }
+          else if (IsCommand("-color2", 7, args[i].name, args[i].nameSize))
+          {
+            lastArg = 2;
+          }
+          else if(IsCommand("-smooth", 7, args[i].name, args[i].nameSize))
+          {
+            smooth = true; 
+          }
+          else if(IsCommand("-rough", 6, args[i].name, args[i].nameSize))
+          {
+            smooth = false;
+          }
+        }
+        else
+        {
+          switch (lastArg)
+          {
+          case 1: // color 1
+          {
+            colors[0] = FindColor(args[i].name, args[i].nameSize);
+  
+  
+            lastArg = -1;
+            break;
+          }
+          case 2: // color 2
+          {
+            colors[1] = FindColor(args[i].name, args[i].nameSize);
+
+            lastArg = -1;
+            break;
+          }
+            
+  
+          default:
+            Serial.println("#!Unknown argument");
+            return false;
+          }
+        }
+
+    }
+
+    ChangeState(new State_Gradient(leds, NUM_LEDS, colors, smooth));
+    return true;
+  }
 
 	return false;
 }
@@ -567,6 +648,8 @@ int ReactToCommand(char* cmnd, int size)
 					Serial.println("| -------------------");
 					Serial.print("| Actual state: ");
 					actualState->name.Println();
+          Serial.print("| Device name: ");
+          Serial.println(DEVICE_NAME);
 
 					Serial.println("|===================");
 					return true;
@@ -753,6 +836,20 @@ int ReactToCommand(char* cmnd, int size)
 
 						return true;
 					}
+         else if(a[0] == "potAvailable")
+         {
+            Serial.print("| ");
+            Serial.println(POTENTIOMETER_ENABLED);
+
+            return true;
+         }
+         else if(a[0] == "deviceName")
+         {
+            Serial.print("| ");
+            Serial.println(DEVICE_NAME);
+
+            return true;
+         }
 
 					return false;
 				}

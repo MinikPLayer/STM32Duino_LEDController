@@ -13,7 +13,7 @@ public:
 	CRGB color;
 
 	State_StaticColor(CRGB* l, int n, CRGB clr)
-		:State(l, n, 1, "Static")
+		:State(l, n, 1, "static")
   {
     color = clr;
 

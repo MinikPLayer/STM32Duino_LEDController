@@ -16,7 +16,7 @@ class State_BurningDot : public State
 	int color = 0;
 
 public:
-	float speed = 0;
+	float delay = 0;
 	float dimming = 0.25;
 
 	const static int MAX_COLORS = 10;
@@ -24,11 +24,11 @@ public:
 	int colors_size;
 
 
-	State_BurningDot(CRGB* l, int n, CRGB clrs[], int clrs_size, float _speed = 100, float _dimming = 0.25)
-		:State(l,n, 4, "Burning dot")
+	State_BurningDot(CRGB* l, int n, CRGB clrs[], int clrs_size, float _delay = 100, float _dimming = 0.25)
+		:State(l,n, 4, "burning")
 	{
 
-		speed = _speed;
+		delay = _delay;
 		dimming = _dimming;
 
 		//colors = clrs;
@@ -64,12 +64,12 @@ public:
 	{
 		mil += deltaTime;
 
-		if (mil > speed)
+		if (mil > delay)
 		{
 
 			fadeToBlackBy(leds, leds_count, dimming * 256);
 
-			mil -= speed;
+			mil -= delay;
 
 			leds[pos] = colors[color];
 
@@ -87,9 +87,72 @@ public:
 		
 	}
 
+	bool GetParameter(Argument param)
+	{
+		int colorSize = param.nameSize; if(colorSize > 6) colorSize = 6;
+		if(IsCommand("colors", 6, param.name, colorSize))
+		{
+			/*if(param.nameSize <= 6)
+			{
+				Serial.println("#!Color argument not complete");
+				return false;
+			}
+			
+			int n = StringToInt(param.name + 6, param.nameSize - 6);
+			
+			if(n >= MAX_COLORS)
+			{
+				Serial.println("#!Outside of colors range");
+				return false;
+			}
+			
+			char arr[] = "             ";
+			Argument a(arr, 13);
+			ParseColorToString(colors[n], a);
+			Serial.print("| ");
+			a.Println();
+			
+			return true;*/
+			Serial.print("| ");
+			for(int i = 0;i<colors_size;i++)
+			{
+				char arr[] = "            "; 
+				Argument colStr(arr, 13);
+
+				ParseColorToString(colors[i], colStr);
+
+				colStr.Print();
+				Serial.print(';');
+			}
+			Serial.println("");
+			
+			return true;
+		}
+		else if(IsCommand("delay", 5, param.name, param.nameSize))
+		{
+			char arr[] = "   ";
+			Argument a(arr, 3);
+
+			ByteToString(delay / 100, a);
+			Serial.print("| ");
+			a.Println();
+			return true;
+		}
+		else if(IsCommand("dimming", 7, param.name, param.nameSize))
+		{
+			char arr[] = "   ";
+			Argument a(arr, 3);
+
+			ByteToString(delay / 100, a);
+			Serial.print("| ");
+			a.Println();
+			return true;
+		}
+	}
+
 	bool SetParameter(Argument param, Argument value)
 	{
-		if (IsCommand("-addcolor", 9, param.name, param.nameSize))
+		/*if (IsCommand("-addcolor", 9, param.name, param.nameSize))
 		{
 			CRGB c = FindColor(value.name, value.nameSize);
 
@@ -108,13 +171,65 @@ public:
 			colors_size++;
 
 			return true;
+		}*/
+		if(IsCommand("colors", 6, param.name, param.nameSize))
+		{
+			String color = "";
+			int it = 0;
+			for(int i = 0;i<value.nameSize;i++)
+			{
+				if(value.name[i] == ';')
+				{
+					CRGB clr = ParseStringToColor(color.c_str());
+					colors[it] = clr;
+					it++;
+					if(it >= MAX_COLORS)
+					{
+						Serial.println("#!TooMuchColors");
+						return false;
+					}
+					color.remove(0);
+				}
+				else
+				{
+					color += value.name[i];
+				}
+				
+			}
+
+			if(color.length() != 0)
+			{
+				CRGB clr = ParseStringToColor(color.c_str());
+				colors[it] = clr;
+				it++;
+			}
+
+			colors_size = it;
+			return true;
 		}
-		else if (IsCommand("-speed", 6, param.name, param.nameSize))
+		else if (IsCommand("delay", 5, param.name, param.nameSize))
+		{
+			/*int val = StringToInt(value.name, value.nameSize);
+
+			delay = val / 100.0;
+
+			return true;*/
+			int val = StringToInt(value.name, value.nameSize);
+			if (val == -1)
+			{
+				return false;
+			}
+			delay = val * 100;
+			return true;
+		}
+		else if(IsCommand("dimming", 7, param.name, param.nameSize))
 		{
 			int val = StringToInt(value.name, value.nameSize);
-
-			speed = val / 100.0;
-
+			if (val == -1)
+			{
+				return false;
+			}
+			dimming = val * 100;
 			return true;
 		}
 

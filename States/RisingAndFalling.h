@@ -25,7 +25,7 @@ public:
 	int delay = 1000;
 
 	State_RisingAndFalling(CRGB* ptr, int num, CRGB clrs[], int clrs_size, int _delay = 50)
-		:State(ptr, num, 3, "Rising And Falling")
+		:State(ptr, num, 3, "risingandfalling")
 	{
 		//colors = clrs;
 		for (int i = 0; i < clrs_size && i < MAX_COLORS;i++)

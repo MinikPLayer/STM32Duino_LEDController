@@ -302,6 +302,17 @@ void LoadConfig()
 		break;
 
 	}
+	case Gradient:
+	{
+		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION);
+		bool smooth = ReadEEPROM(ptr++, 0, 1);
+		CRGB colors[2];
+		colors[0] = ReadColorFromEEPROM(ptr);
+		colors[1] = ReadColorFromEEPROM(ptr);
+		
+		ChangeState(new State_Gradient(leds, NUM_LEDS, colors, smooth));
+		break;
+	}
 	default:
 		ChangeState(new State_StaticColor(leds, NUM_LEDS, CRGB(255, 128, 0)));
 		break;
@@ -350,7 +361,7 @@ bool SaveConfig()
 	{
 		State_BurningDot* st = (State_BurningDot*)actualState;
 		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION);
-		Configurator::Write(ptr++, st->speed);
+		Configurator::Write(ptr++, st->delay);
 		Configurator::Write(ptr++, st->dimming * 100.f);
 		Configurator::Write(ptr++, st->colors_size);
 
@@ -373,6 +384,16 @@ bool SaveConfig()
 		State_Breathing* st = (State_Breathing*)actualState;
 		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION);
 		Configurator::Write(ptr++, st->speed * 100.0f);
+		return true;
+	}
+	case Gradient:
+	{
+		State_Gradient* st = (State_Gradient*)actualState;
+		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION);
+		Configurator::Write(ptr++, st->smooth);
+		ptr = SaveColorToEEPROM(ptr, st->colors[0]);
+		ptr = SaveColorToEEPROM(ptr, st->colors[1]);
+		
 		return true;
 	}
 	default:

@@ -15,7 +15,7 @@ public:
 	float speed = 0;
 
 	State_Rainbow(CRGB* l, int num, float _speed = 0.1, int rainbow_width = -1)
-		:State(l, num, 2, "Rainbow")
+		:State(l, num, 2, "rainbow")
 	{
 		speed = _speed;
 		width = rainbow_width;

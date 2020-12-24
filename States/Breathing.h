@@ -13,7 +13,7 @@ public:
 	float speed = 0.1f;
 
 	State_Breathing(CRGB* l, int n, float _speed = 0.1f)
-		:State(l,n, 5, "Breathing"), rainbow(l,n,_speed, 1)
+		:State(l,n, 5, "breathing"), rainbow(l,n,_speed, 1)
 	{
 		speed = _speed;
 

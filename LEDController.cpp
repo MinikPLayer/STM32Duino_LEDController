@@ -67,8 +67,12 @@ void _setup()
 
 	// put your setup code here, to run once:
 	pinMode(13, OUTPUT);
-	pinMode(BRIGHTNESS_PIN, INPUT_PULLUP);
-	pinMode(BRIGHTNESS_POTENTIOMETER_INPUT_PIN, OUTPUT); digitalWrite(BRIGHTNESS_POTENTIOMETER_INPUT_PIN, HIGH);
+
+  #if POTENTIOMETER_ENABLED == true
+  	pinMode(BRIGHTNESS_PIN, INPUT_PULLUP);
+  	pinMode(BRIGHTNESS_POTENTIOMETER_INPUT_PIN, OUTPUT); 
+  	digitalWrite(BRIGHTNESS_POTENTIOMETER_INPUT_PIN, HIGH);
+  #endif
 
 	//while (!Serial);
 
@@ -312,7 +316,10 @@ void _loop() {
 		Serial.println("STATE IS NULL");
 	}
 
-	CheckBrightness();
+  #if POTENTIOMETER_ENABLED == true
+	  CheckBrightness();
+  #endif
+    
 	CheckSerial();
 
 	int res = micros() - lastMicros;
