@@ -2,6 +2,10 @@
 
 #include <EEPROM.h>
 
+#ifdef ESP32
+	#define ESP32_EEPROM_SIZE 1024
+#endif
+
 const static int slotsSize = 3;
 Slot slots[slotsSize] = { Slot("brightness", EEPROM_SLOT_BRIGHTNESS), Slot("defaultmode", EEPROM_SLOT_DEFAULT_MODE), Slot("defaultmodeparam1", EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1) };
 
@@ -18,7 +22,31 @@ int FindSlot(char* name, int length)
 	return -1;
 }
 
-void Configurator::Write(int slot, int value)
+
+
+void Configurator::Initialize()
+{
+	#ifdef ESP32
+		EEPROM.begin(ESP32_EEPROM_SIZE);
+	#endif
+}
+
+void Configurator::Erase()
+{
+	auto length = EEPROM.length();
+	#ifdef ESP32
+		length = ESP32_EEPROM_SIZE;
+	#endif
+	
+	for(int i = 0;i<length;i++)
+		EEPROM.write(i, 255);
+
+	#ifdef ESP32
+		EEPROM.commit();
+	#endif
+}
+
+void Configurator::Write(int address, int value)
 {
 	if (value > 255)
 	{
@@ -30,7 +58,16 @@ void Configurator::Write(int slot, int value)
 		Serial.println("#@[EEPROM]TooSmallValue");
 		value = 0;
 	}
-	EEPROM.update(slot, value);
+
+	#ifdef ESP32
+		auto val = EEPROM.read(address);
+		if(val == value)
+			return;
+		EEPROM.write(address, value);
+		EEPROM.commit();
+	#else
+		EEPROM.update(address, value);
+	#endif
 }
 
 void Configurator::Write(Slot slot, int value)

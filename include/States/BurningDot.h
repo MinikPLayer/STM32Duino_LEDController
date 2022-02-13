@@ -133,7 +133,7 @@ public:
 			char arr[] = "   ";
 			Argument a(arr, 3);
 
-			ByteToString(delay / 100, a);
+			ByteToString(delay, a);
 			Serial.print("| ");
 			a.Println();
 			return true;
@@ -143,7 +143,7 @@ public:
 			char arr[] = "   ";
 			Argument a(arr, 3);
 
-			ByteToString(delay / 100, a);
+			ByteToString(delay * 100.f, a);
 			Serial.print("| ");
 			a.Println();
 			return true;
@@ -219,7 +219,7 @@ public:
 			{
 				return false;
 			}
-			delay = val * 100;
+			delay = val;
 			return true;
 		}
 		else if(IsCommand("dimming", 7, param.name, param.nameSize))
@@ -229,7 +229,7 @@ public:
 			{
 				return false;
 			}
-			dimming = val * 100;
+			dimming = val / 100.f;
 			return true;
 		}
 

@@ -31,6 +31,9 @@ struct Slot
 class Configurator
 {
 public:
+	static void Initialize();
+	static void Erase();
+
 	static void Write(int slot, int value);
 	static void Write(Slot slot, int value);
 	static bool Write(char* slotname, int slotNameLength, int value);

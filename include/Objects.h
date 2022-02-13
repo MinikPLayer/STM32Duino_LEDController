@@ -2,23 +2,36 @@
 #define _OBJECTS_H
 
 #include <FastLED.h>
+#include "Device.h"
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
-#define LED_PIN PA7
+#pragma region LED_DEFINES
+	#ifdef STM32
+		#define LED_PIN PA7
+		#define BRIGHTNESS_PIN PA0
+		#define BRIGHTNESS_POTENTIOMETER_INPUT_PIN PC14
+	#endif
+	#ifdef ESP32
+		#define LED_PIN 13 // D13
+		#define BRIGHTNESS_PIN 12 // D12
+		#define BRIGHTNESS_POTENTIOMETER_INPUT_PIN 14 // D14
+	#endif
+
+	#ifndef LED_PIN
+		#error "Unsupported platform"
+	#endif
+#pragma endregion
 
 #define POTENTIOMETER_ENABLED false
-#define BRIGHTNESS_PIN PA0
-#define BRIGHTNESS_POTENTIOMETER_INPUT_PIN PC14
 
-#define DEVICE_NAME "Plumbob"
-#define NUM_LEDS 18
+#define DEVICE_NAME "Desk LED's"
+#define NUM_LEDS 60
 
 //#define DEVICE_NAME "PC LED's"
 //#define NUM_LEDS 15
 
-#define BAUDRATE 115200
-
+#define BAUDRATE 57600
 
 #define MAX_CMND_SIZE 150
 

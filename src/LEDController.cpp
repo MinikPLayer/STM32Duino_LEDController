@@ -14,14 +14,10 @@ void ChangeState(State* newState)
 {
 	if(actualState == NULL)
 	{
-		//Serial.println("I won't delete old object, because why bother??");
-
 		actualState = newState;
 	}
 	else
 	{
-		//Serial.println("Deleting old state");
-
 		delete actualState;
 		actualState = newState;
 	}
@@ -57,8 +53,10 @@ States defaultState = States::undefinied;
 
 
 
+const bool debugMode = false;
 void _setup() 
 {
+	Configurator::Initialize();
 
 	Serial.begin(BAUDRATE);
 	//while (!Serial);
@@ -66,7 +64,7 @@ void _setup()
 	//display_allocInfo();
 
 	// put your setup code here, to run once:
-	pinMode(13, OUTPUT);
+	pinMode(LED_BUILTIN, OUTPUT);
 
   #if POTENTIOMETER_ENABLED == true
   	pinMode(BRIGHTNESS_PIN, INPUT_PULLUP);
@@ -81,14 +79,25 @@ void _setup()
 	FastLED.clear();
 
 
-	if (digitalRead(PB3) != LOW)
+	//if (digitalRead(PB3) != LOW)
+	if(!debugMode)
 	{ 
 		currentPreset = Configurator::Read(EEPROM_DEFAULT_PRESET);
-		if (currentPreset >= MAX_PRESETS)
+		// If preset is higher than max or == 255 (not set), reset to defaults
+		if (currentPreset >= MAX_PRESETS || currentPreset == 255)
 		{
-			currentPreset = 0;
-			Configurator::Write(EEPROM_DEFAULT_PRESET, 0);
+			currentPreset = 1;
+			Configurator::Write(EEPROM_DEFAULT_PRESET, currentPreset);
+
+			brightness = 255;
+			ChangeState(new State_Rainbow(leds, NUM_LEDS));
+
+			SaveConfig();
 		}
+
+		Serial.print("Loading preset ");
+		Serial.print(currentPreset);
+		Serial.println("...");
 
 		LoadConfig();
 	}
@@ -203,8 +212,8 @@ void CheckSerial()
 }
 
 int lastState = 255;
-uint32 lastMax = 0;
-uint32 lastMin = 0;
+uint32_t lastMax = 0;
+uint32_t lastMin = 0;
 
 bool wasMax = false;
 bool wasMin = false;

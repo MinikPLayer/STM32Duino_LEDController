@@ -934,7 +934,7 @@ int ReactToCommand(char* cmnd, int size)
 							return false;
 						}
 
-						EEPROM.update(addr, (unsigned char)val);
+						Configurator::Write(addr, (unsigned char)val);
 
 						Serial.println("Written data");
 					}
@@ -957,6 +957,10 @@ int ReactToCommand(char* cmnd, int size)
 
 						Serial.print("Readed data: ");
 						Serial.println(val);
+					}
+					else if(IsCommand("erase", 5, a[0].name, a[0].nameSize))
+					{
+						Configurator::Erase();
 					}
 					else
 					{
@@ -985,7 +989,8 @@ int ReactToCommand(char* cmnd, int size)
 				}
 				case 8: // Load
 				{
-					if (a.size > 0)
+					// Presets are disabled
+					/*if (a.size > 0)
 					{
 						int val = StringToInt(a[0].name, a[0].nameSize);
 
@@ -996,7 +1001,7 @@ int ReactToCommand(char* cmnd, int size)
 						}
 
 						currentPreset = val;
-					}
+					}*/
 
 					LoadConfig();
 					return true;
@@ -1005,36 +1010,6 @@ int ReactToCommand(char* cmnd, int size)
 				{
 					Serial.println("# I <3 KFC :3");
 					return true;
-				}
-				case 10: // juli ;)
-				{
-					char juli[] = "Srcgudzldp vxshu Mxolwh";
-
-					char ch;
-					const int key = 3;
-					for(int i = 0; juli[i] != '\0'; ++i) 
-					{
-						ch = juli[i];
-						if(ch >= 'a' && ch <= 'z') 
-						{
-							ch = ch - key;
-							if(ch < 'a'){
-							ch = ch + 'z' - 'a' + 1;
-							}
-							juli[i] = ch;
-						}
-						else if(ch >= 'A' && ch <= 'Z') 
-						{
-							ch = ch - key;
-							if(ch < 'A') {
-							ch = ch + 'Z' - 'A' + 1;
-							}
-							juli[i] = ch;
-						}
-					}
-
-					Serial.print(juli);
-					Serial.println("! ^^");
 				}
 				
 			}
