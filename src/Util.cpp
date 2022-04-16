@@ -177,24 +177,25 @@ int ReadEEPROM(int slot, int defaultValue, int maxValue)
 void LoadConfig()
 {
 
-	brightness = ReadEEPROM(EEPROM_SLOT_BRIGHTNESS + (currentPreset * PRESET_SEPARATION), 255);
+	brightness = ReadEEPROM(EEPROM_SLOT_BRIGHTNESS, 255);
 	if (brightness == 0) brightness = 255;
 	FastLED.setBrightness(brightness);
 
-	defaultState = (States)ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE + (currentPreset * PRESET_SEPARATION), 1);
+	defaultState = (States)ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE, 1);
 
-	physicalBrightnessControlEnabled = ReadEEPROM(EEPROM_SLOT_PHYSICAL_BRIGHTNESS_ENABLED + (currentPreset * PRESET_SEPARATION), 1);
+	physicalBrightnessControlEnabled = ReadEEPROM(EEPROM_SLOT_PHYSICAL_BRIGHTNESS_ENABLED, 1);
 
 	switch (defaultState)
 	{
 	case undefinied:
 		Serial.println("#!No default mode selected");
 		ChangeState(new State_StaticColor(leds, NUM_LEDS, CRGB::Black));
+		break;
 	case StaticColor:
 	{
 		//int color = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1, 0);
 		//CRGB clr = GetColor(color, CRGB::Green);
-		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION);
+		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1;
 		CRGB clr = ReadColorFromEEPROM(ptr);
 
 		ChangeState(new State_StaticColor(leds, NUM_LEDS, clr));
@@ -202,8 +203,8 @@ void LoadConfig()
 	}
 	case Rainbow:
 	{
-		float speed = (ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION), 1) / 100.0);
-		int width = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION) + 1, NUM_LEDS);
+		float speed = (ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1, 1) / 100.0);
+		int width = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + 1, NUM_LEDS);
 
 		ChangeState(new State_Rainbow(leds, NUM_LEDS, speed, width));
 		break;
@@ -213,8 +214,8 @@ void LoadConfig()
 		CRGB clrs[10] = { CRGB::Red, CRGB::Green, CRGB::Blue };
 		int clrsSize = 3;
 
-		int delay = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION), 50) * 10;
-		int savedColors = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION) + 1);
+		int delay = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1, 50) * 10;
+		int savedColors = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + 1);
 		if (savedColors > 10)
 		{
 			savedColors = 10;
@@ -225,7 +226,7 @@ void LoadConfig()
 			clrsSize = savedColors;
 		}
 
-		int pointer = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION) + 2;
+		int pointer = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + 2;
 		for (int i = 0; i < savedColors; i++)
 		{
 			//int col = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + 2 + i, 0);
@@ -240,9 +241,9 @@ void LoadConfig()
 	{
 		CRGB clrs[10] = { CRGB::Red, CRGB::Green, CRGB::Blue };
 		int clrsSize = 3;
-		float speed = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION), 100);
-		float dimming = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION) + 1, 25) / 100.f;
-		int savedColors = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION) + 2, 0);
+		float speed = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1, 100);
+		float dimming = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + 1, 25) / 100.f;
+		int savedColors = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + 2, 0);
 
 		if (savedColors > 10)
 		{
@@ -254,7 +255,7 @@ void LoadConfig()
 			clrsSize = savedColors;
 		}
 
-		int pointer = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION) + 3;
+		int pointer = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + 3;
 		for (int i = 0; i < savedColors; i++)
 		{
 			//int col = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + 3 + i, 0);
@@ -295,7 +296,7 @@ void LoadConfig()
 		ChangeState(new State_Breathing(leds, NUM_LEDS, clrs, clrsSize, speed));
 		break;*/
 
-		float speed = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION), 1) / 100.0f;
+		float speed = ReadEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1, 1) / 100.0f;
 
 		ChangeState(new State_Breathing(leds, NUM_LEDS, speed));
 
@@ -304,7 +305,7 @@ void LoadConfig()
 	}
 	case Gradient:
 	{
-		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION);
+		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1;
 		bool smooth = ReadEEPROM(ptr++, 0, 1);
 		CRGB colors[2];
 		colors[0] = ReadColorFromEEPROM(ptr);
@@ -321,9 +322,9 @@ void LoadConfig()
 
 bool SaveConfig()
 {
-	Configurator::Write(EEPROM_SLOT_BRIGHTNESS + (currentPreset * PRESET_SEPARATION), brightness);
-	Configurator::Write(EEPROM_SLOT_DEFAULT_MODE + (currentPreset * PRESET_SEPARATION), actualState->id);
-	Configurator::Write(EEPROM_SLOT_PHYSICAL_BRIGHTNESS_ENABLED + (currentPreset * PRESET_SEPARATION), physicalBrightnessControlEnabled);
+	Configurator::Write(EEPROM_SLOT_BRIGHTNESS, brightness);
+	Configurator::Write(EEPROM_SLOT_DEFAULT_MODE, actualState->id);
+	Configurator::Write(EEPROM_SLOT_PHYSICAL_BRIGHTNESS_ENABLED, physicalBrightnessControlEnabled);
 
 	States s = (States)actualState->id;
 	switch (s)
@@ -334,21 +335,21 @@ bool SaveConfig()
 	case StaticColor:
 	{
 		State_StaticColor* st = (State_StaticColor*)actualState;
-		SaveColorToEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION), st->color);
+		SaveColorToEEPROM(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1, st->color);
 		return true;
 	}
 	case Rainbow:
 	{
 		State_Rainbow* st = (State_Rainbow*)actualState;
 		int val = st->speed * 100.f;
-		Configurator::Write(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION), val);
-		Configurator::Write(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION) + 1, st->width);
+		Configurator::Write(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1, val);
+		Configurator::Write(EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + 1, st->width);
 		return true;
 	}
 	case RisingAndFalling:
 	{
 		State_RisingAndFalling* st = (State_RisingAndFalling*)actualState;
-		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION);
+		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1;
 		Configurator::Write(ptr++, st->delay / 10);
 		Configurator::Write(ptr++, st->colorSize);
 		for (int i = 0; i < st->colorSize; i++)
@@ -360,7 +361,7 @@ bool SaveConfig()
 	case BurningDot:
 	{
 		State_BurningDot* st = (State_BurningDot*)actualState;
-		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION);
+		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1;
 		Configurator::Write(ptr++, st->delay);
 		Configurator::Write(ptr++, st->dimming * 100.f);
 		Configurator::Write(ptr++, st->colors_size);
@@ -382,14 +383,14 @@ bool SaveConfig()
 			ptr = SaveColorToEEPROM(ptr, st->colors[i]);
 		}*/
 		State_Breathing* st = (State_Breathing*)actualState;
-		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION);
+		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1;
 		Configurator::Write(ptr++, st->speed * 100.0f);
 		return true;
 	}
 	case Gradient:
 	{
 		State_Gradient* st = (State_Gradient*)actualState;
-		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1 + (currentPreset * PRESET_SEPARATION);
+		int ptr = EEPROM_SLOT_DEFAULT_MODE_PARAMETER_1;
 		Configurator::Write(ptr++, st->smooth);
 		ptr = SaveColorToEEPROM(ptr, st->colors[0]);
 		ptr = SaveColorToEEPROM(ptr, st->colors[1]);

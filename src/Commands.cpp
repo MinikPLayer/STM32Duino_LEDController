@@ -953,9 +953,11 @@ int ReactToCommand(char* cmnd, int size)
 							return false;
 						}
 
-						int val = (int)(EEPROM.read(addr));
+						int val = (int)(Configurator::Read(addr));
 
-						Serial.print("Readed data: ");
+						Serial.print("EEPROM [");
+						Serial.print(addr);
+						Serial.print("] = ");
 						Serial.println(val);
 					}
 					else if(IsCommand("erase", 5, a[0].name, a[0].nameSize))

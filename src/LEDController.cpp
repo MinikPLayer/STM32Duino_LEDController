@@ -2,10 +2,11 @@
 #include "LEDController.h"
 #include "Commands.h"
 #include "Util.h"
-
 #include "States.h"
-
 #include "Configurator.h"
+#include "SerialWrappers/TerminalSerial.hpp"
+#include "SerialWrappers/WifiSerial.hpp"
+#include "Process.hpp"
 
 #include <Arduino.h>
 
@@ -112,45 +113,71 @@ void _setup()
 
 	FastLED.show();
 
-	//FastLED.clear();
-
-	//actualState = new StaticColor((CRGB**)&leds, NUM_LEDS);
-	//ChangeState(new State_StaticColor(leds, NUM_LEDS, CRGB(0,0,255)));
-	//ChangeState(new State_RisingAndFalling(leds, NUM_LEDS, Array<CRGB>{ CRGB(255,0,0), CRGB(0, 255, 0), CRGB(0,0,254) }, 200));
-	//ChangeState(new State_Rainbow(leds, NUM_LEDS, 0.1));
-	//CRGB colors[] = { CRGB::Red, CRGB::Blue, CRGB::Yellow };
-	//ChangeState(new State_BurningDot(leds, NUM_LEDS, colors, 3, 50, 0.35));
-  
-
-	//digitalWrite(13, HIGH);
-	//delay(1000);
-	//digitalWrite(13, LOW);
-
-
 	Serial.println("READY");
-
-	//actualState->Start();
 }
 
 long long int lastMicros = 0;
 double deltaTime = 0;
 
-
-
-
-char command[MAX_CMND_SIZE];
-int serialPos = 0;
-void CheckSerial()
+class SerialInstance
 {
+	SerialInstance(CustomSerial* serialPtr)
+	{
+		serial = serialPtr;
+		serialPos = 0;
+		for(int i = 0;i<MAX_CMND_SIZE;i++)
+			command[i] = 0;
 
+		serial->begin(BAUDRATE);
+	}
 
-  
-	while(Serial.available())
+public:
+	CustomSerial* serial = nullptr;
+	int serialPos = 0;
+	char command[MAX_CMND_SIZE];
+
+	template<class T>
+	static SerialInstance Create()
+	{
+		return SerialInstance(new T());
+	}
+
+	void CheckSerial();
+
+	~SerialInstance()
+	{
+		if(serial != nullptr)
+		{
+			delete serial;
+			serial = nullptr;
+		}
+	}
+};
+
+SerialInstance serialInstances[] = 
+{
+	SerialInstance::Create<TerminalSerial>(),
+	#if defined(ESP) 
+		SerialInstance::Create<WifiSerial>()
+	#endif
+};
+
+void CheckSerialInterfaces()
+{
+	int count = sizeof(serialInstances) / sizeof(SerialInstance);
+	
+	for(int i = 0;i<count;i++)
+		serialInstances[i].CheckSerial();
+}
+
+void SerialInstance::CheckSerial()
+{ 
+	while(serial->available())
 	{
 		while(serialPos != MAX_CMND_SIZE)
 		{
-			if (!Serial.available()) return;
-			char c = Serial.read();
+			if (!serial->available()) return;
+			char c = serial->read();
 
 			if(c == '\n')
 			{
@@ -167,48 +194,50 @@ void CheckSerial()
 
 		if(serialPos == MAX_CMND_SIZE)
 		{
-			Serial.println("!CommandOverflow");
+			serial->println("!CommandOverflow");
 			serialPos = 0;
 			return;
 		}
-
-
 
 		if(command[0] == '+')
 		{
 			int result = ReactToCommand(&command[1], serialPos - 1);
 			if (result == false)
 			{
-				Serial.println("!BadCommandSyntax");
+				serial->println("!BadCommandSyntax");
 			}
 			else if (result == 2)
 			{
-				Serial.println("!CommandNotFound");
+				serial->println("!CommandNotFound");
 			}
 			else if (result == 3)
 			{
-				Serial.println("!CommandBadArgs");
+				serial->println("!CommandBadArgs");
 			}
 			else if (result == true)
 			{
-				Serial.println("=OK");
+				serial->println("=OK");
 			}
 			else
 			{
-				Serial.print("!CommandOtherError:");
-				Serial.println(result);
+				serial->print("!CommandOtherError:");
+				serial->println(result);
 			}
 		}
 		else
 		{
-			Serial.println("!CommandNoPlusSign");
+			serial->println("!CommandNoPlusSign");
 		}
-    
 
 		serialPos = 0;								
 	}
 
 
+}
+
+uint32_t abs_l(uint32_t v)
+{
+	return v < 0 ? -v : v;
 }
 
 int lastState = 255;
@@ -236,7 +265,7 @@ void CheckBrightness()
 		{
 			lastMax = millis();
 
-			if (abs(lastMax - lastMin) < 4000)
+			if (abs_l(lastMax - lastMin) < 4000)
 			{
 				if (!(lastMax == 0 || lastMin == 0))
 				{
@@ -265,7 +294,7 @@ void CheckBrightness()
 		{
 			lastMin = millis();
 
-			if (abs(lastMin - lastMax) < 4000 && !wasMin)
+			if (abs_l(lastMin - lastMax) < 4000 && !wasMin)
 			{
 				if (!(lastMax == 0 || lastMin == 0))
 				{
@@ -307,15 +336,6 @@ void CheckBrightness()
 
 
 void _loop() {
-	// put your main code here, to run repeatedly:
-	
-	//ChangeState(new State_BurningDot(leds, NUM_LEDS, Array<CRGB>{CRGB::Red, CRGB::Blue, CRGB::Green}, 50, 0.35));
-
-	//ChangeState(new State_BurningDot(leds, NUM_LEDS, Array<CRGB>{CRGB::Red, CRGB::Blue, CRGB::Green}, 50, 0.35));
-	//ChangeState(new State_BurningDot(leds, NUM_LEDS, Array<CRGB>{CRGB::Red, CRGB::Blue, CRGB::Green}, 50, 0.35));
-	//ChangeState(new State_BurningDot(leds, NUM_LEDS, Array<CRGB>{CRGB::Red, CRGB::Blue, CRGB::Green}, 50, 0.35));
-
-
 	if(actualState != NULL)
 	{
 		actualState->Update(deltaTime);
@@ -329,14 +349,14 @@ void _loop() {
 	  CheckBrightness();
   #endif
     
-	CheckSerial();
+	CheckSerialInterfaces();
 
 	int res = micros() - lastMicros;
 	lastMicros = micros();
 	deltaTime = res/1000.0;
 
   
-
+	Process::_RunTicks();
 
 
 	if(actualState->updateLeds)
