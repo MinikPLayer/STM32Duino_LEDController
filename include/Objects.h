@@ -2,7 +2,6 @@
 #define _OBJECTS_H
 
 #include <FastLED.h>
-#include "Device.h"
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 

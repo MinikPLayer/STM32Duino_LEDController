@@ -50,10 +50,8 @@ void ChangeLED(int number, CRGB color, bool show)
 }
 
 
+WifiSerial* wSerial = nullptr;
 States defaultState = States::undefinied;
-
-
-
 const bool debugMode = false;
 void _setup() 
 {
@@ -108,11 +106,14 @@ void _setup()
 		//defaultState = States::Rainbow;
 		ChangeState(new State_Rainbow(leds, NUM_LEDS));
 	}
-	
+
+	#ifdef WIFI
+		wSerial = new WifiSerial();
+		wSerial->Init();
+	#endif
 
 
 	FastLED.show();
-
 	Serial.println("READY");
 }
 
@@ -124,22 +125,24 @@ class SerialInstance
 	SerialInstance(CustomSerial* serialPtr)
 	{
 		serial = serialPtr;
-		serialPos = 0;
+		if(serial == nullptr)
+			return;
+		serial->serialPos = 0;
 		for(int i = 0;i<MAX_CMND_SIZE;i++)
-			command[i] = 0;
+			serial->command[i] = 0;
 
 		serial->begin(BAUDRATE);
 	}
 
 public:
 	CustomSerial* serial = nullptr;
-	int serialPos = 0;
-	char command[MAX_CMND_SIZE];
 
 	template<class T>
-	static SerialInstance Create()
+	static SerialInstance Create(bool tick = true)
 	{
-		return SerialInstance(new T());
+		auto t = SerialInstance(new T());
+		t.serial->tick = tick;
+		return t;
 	}
 
 	void CheckSerial();
@@ -157,9 +160,6 @@ public:
 SerialInstance serialInstances[] = 
 {
 	SerialInstance::Create<TerminalSerial>(),
-	#if defined(WIFI) 
-		SerialInstance::Create<WifiSerial>()
-	#endif
 };
 
 void CheckSerialInterfaces()
@@ -172,57 +172,70 @@ void CheckSerialInterfaces()
 
 void SerialInstance::CheckSerial()
 { 
+	if(serial == nullptr)
+		return;
+
 	while(serial->available())
 	{
-		while(serialPos != MAX_CMND_SIZE)
+		while(serial->serialPos != MAX_CMND_SIZE)
 		{
-			if (!serial->available()) return;
+			if (!serial->available()) 
+				return;
 			char c = serial->read();
+			// Serial.print("Command: \"");
+			// Serial.print(serial->command);
+			// Serial.println("\"");
 
 			if(c == '\r')
 				continue;
 
 			if(c == '\n')
 			{
-				if(serialPos == 0) // Empty command
+				if(serial->serialPos == 0) // Empty command
 				{
 					return;
 				}
 				break;
 			}
 
-			command[serialPos] = c;
-			serialPos++;
+			serial->command[serial->serialPos] = c;
+			serial->serialPos++;
 		}
 
-		if(serialPos == MAX_CMND_SIZE)
+		if(serial->serialPos == MAX_CMND_SIZE)
 		{
 			serial->println("!CommandOverflow");
-			serialPos = 0;
+			serial->serialPos = 0;
 			return;
 		}
 
-		if(command[0] == '+')
+		if(serial->command[0] == '+')
 		{
-			int result = ReactToCommand(&command[1], serialPos - 1);
+			int result = ReactToCommand(&serial->command[1], serial->serialPos - 1);
 			if (result == false)
 			{
+				//Serial.println("!BadCommandSyntax");
 				serial->println("!BadCommandSyntax");
 			}
 			else if (result == 2)
 			{
+				//Serial.println("!CommandNotFound");
 				serial->println("!CommandNotFound");
 			}
 			else if (result == 3)
 			{
+				//Serial.println("!CommandBadArgs");
 				serial->println("!CommandBadArgs");
 			}
 			else if (result == true)
 			{
+				//Serial.println("!OK");
 				serial->println("=OK");
 			}
 			else
 			{
+				//Serial.print("!CommandOtherError");
+				//Serial.println(result);
 				serial->print("!CommandOtherError:");
 				serial->println(result);
 			}
@@ -232,7 +245,7 @@ void SerialInstance::CheckSerial()
 			serial->println("!CommandNoPlusSign");
 		}
 
-		serialPos = 0;								
+		serial->clear();						
 	}
 
 
@@ -367,6 +380,7 @@ void _loop() {
 		FastLED.show();
 		actualState->updateLeds = false;
 	}
+	
 
 	delay(2);
 }

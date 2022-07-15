@@ -1,5 +1,10 @@
 #include "Commands.h"
-#include "Objects.h"
+#include "Objects.h"            // Serial.print("Arg [");
+            // Serial.print(i);
+            // Serial.print("] ");
+            // Serial.print(server.argName(i));
+            // Serial.print(" = ");
+            // Serial.println(server.arg(i));
 #include "LEDController.h"
 #include "States.h"
 
@@ -13,6 +18,7 @@
 
 const int commandsSize = 10;
 Command commands[commandsSize] = {"test", "info", "set", "get", "setparam", "eeprom", "save", "getparam", "load", "easter"};
+
 
 bool IsCommand(char* ogCmd, int ogSize, char* checkCmd, int checkSize)
 {
