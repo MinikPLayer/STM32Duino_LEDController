@@ -13,7 +13,7 @@
     #include <ESP8266WebServer.h>
 #endif
 
-#define SSID DEVICE_NAME
+#define AP_SSID DEVICE_NAME
 
 const int RESPONSE_BUFFER_LENGTH = 100;
 
@@ -25,8 +25,16 @@ class WifiSerial : public Process
 
     ESP8266WebServer server = ESP8266WebServer(80);
 
+    String net_ssid;
+    String net_pass;
+
+    const long long connectTryDelay = 1000 * 300; // Retry to connect every 5min
+    long long lastConnectTry = 0;
+
     char command[200];
     int commandPos = 0;
+
+    bool shouldConnect = false;
 
     bool _lock = false;
     void lock()
@@ -58,7 +66,6 @@ class WifiSerial : public Process
         return true;
     }
 
-    bool reactToCommand = false;
     void handle_OnSerial() 
     {
         for(int i = 0;i<server.args();i++) {
@@ -66,8 +73,6 @@ class WifiSerial : public Process
                 //Serial.println("Data :)");
                 if(!write_to_buf(server.arg(i)))
                     server.send(507, "text/html", "Buffer is full, no space left to fulfil the request");
-
-                reactToCommand = true;
 
                 if(command[0] == '+')
                 {
@@ -108,7 +113,6 @@ class WifiSerial : public Process
                 }
 
                 commandPos = 0;
-                reactToCommand = false;
 
                 return;
             }
@@ -116,21 +120,92 @@ class WifiSerial : public Process
         server.send(400, "text/html", "No data found, use ?data={data}");
     }
 
-public:
-    
-    void Init()
+    bool IsConnected()
     {
-        WiFi.softAP(SSID);
+        return WiFi.status() == WL_CONNECTED;
+    }
+
+    bool Connect(String& ssid, String& pass, int timeoutCount = 100)
+    {
+        Serial.println("[WiFi] Connecting...\n\n");
+        Serial.print("[WiFi] SSID: \"");
+        Serial.print(ssid);
+        Serial.print("\"\n\n[WiFi] Password: \"");
+        Serial.print(pass);
+        Serial.println("\"");
+
+        WiFi.disconnect();
+        WiFi.begin(ssid, pass);
+        WiFi.setAutoReconnect(true);
+        lastConnectTry = millis();
+        for(int i = 0;i<timeoutCount;i++)
+        {
+            if(IsConnected()) {
+                Serial.println("[WiFi] Connected!");
+                return true;
+            }
+
+            delay(100);
+        }
+
+        Serial.println("[WiFi] Can't connect to network");
+        SetupAsSoftAP();
+
+        return false;
+    }
+
+    void SetupAsSoftAP()
+    {
+        WiFi.disconnect();
+        Serial.println("[WiFi] Setting up as Soft AP mode");
+        Serial.print("[WiFi] Using SSID \"");
+        Serial.print(AP_SSID);
+        Serial.println("\"");
+        WiFi.softAP(AP_SSID);
         WiFi.softAPConfig(local_ip, gateway, subnet);
         delay(100);
+    }
+
+public:
+    void Init()
+    {
+
+        int wifiSSIDLength = Configurator::Read(EEPROM_SLOT_WIFI_SSID_LENGTH);
+        int wifiPassLength = Configurator::Read(EEPROM_SLOT_WIFI_PASS_LENGTH);
+        if(wifiSSIDLength == 0) // Wifi not set-up
+        {
+            shouldConnect = false;
+
+            SetupAsSoftAP();
+        }
+        else {
+            shouldConnect = true;
+
+            for(int i = 0;i<wifiSSIDLength;i++)
+            {
+                char c = Configurator::Read(EEPROM_SLOT_WIFI_SSID + i);
+                net_ssid.concat(c);
+            }
+
+            for(int i = 0;i<wifiPassLength;i++)
+            {
+                char c = Configurator::Read(EEPROM_SLOT_WIFI_PASS + i);
+                net_pass.concat(c);
+            }
+
+            Connect(net_ssid, net_pass);
+        }
 
         server.on("/serial", [this]() { handle_OnSerial(); });
-
+        server.on("/reconfigure", [this]() { Init(); });
         server.begin();
     }
 
     void Tick() override 
     {
+        if(shouldConnect && (millis() - lastConnectTry > connectTryDelay) && !IsConnected()) 
+            Connect(net_ssid, net_pass);
+
         server.handleClient();
     }
 };

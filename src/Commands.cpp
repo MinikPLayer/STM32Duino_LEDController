@@ -1,10 +1,10 @@
 #include "Commands.h"
-#include "Objects.h"            // Serial.print("Arg [");
-            // Serial.print(i);
-            // Serial.print("] ");
-            // Serial.print(server.argName(i));
-            // Serial.print(" = ");
-            // Serial.println(server.arg(i));
+#include "Objects.h"            // Print("Arg [");
+            // Print(i);
+            // Print("] ");
+            // Print(server.argName(i));
+            // Print(" = ");
+            // Println(server.arg(i));
 #include "LEDController.h"
 #include "States.h"
 
@@ -19,6 +19,25 @@
 const int commandsSize = 10;
 Command commands[commandsSize] = {"test", "info", "set", "get", "setparam", "eeprom", "save", "getparam", "load", "easter"};
 
+void Println(int data)
+{
+	Serial.println(data);
+}
+
+void Println(const char* data)
+{
+	Serial.println(data);
+}
+
+void Print(int data) 
+{
+	Serial.print(data);
+}
+
+void Print(const char* data)
+{
+	Serial.print(data);
+}
 
 bool IsCommand(char* ogCmd, int ogSize, char* checkCmd, int checkSize)
 {
@@ -67,7 +86,7 @@ bool ChangeMode(char* name, int nameSize)
 			argSize++;
 			if (argSize >= maxArgs + 1)
 			{
-				Serial.println("#Too much arguments");
+				Println("#Too much arguments");
 				break;
 			}
 
@@ -83,16 +102,16 @@ bool ChangeMode(char* name, int nameSize)
 		}
 	}
 
-	/*Serial.println("Arguments: ");
+	/*Println("Arguments: ");
 	for (int i = 0; i < argSize; i++)
 	{
-		Serial.print(i);
-		Serial.print(") \"");
+		Print(i);
+		Print(") \"");
 		for (int j = 0; j < args[i].nameSize; j++)
 		{
-			Serial.print(args[i].name[j]);
+			Print(args[i].name[j]);
 		}
-		Serial.println("\"");
+		Println("\"");
 	}*/
 
 
@@ -111,14 +130,14 @@ bool ChangeMode(char* name, int nameSize)
 		{
 			if (argState == -1)
 			{
-				Serial.println("#Bad function parameter");
+				Println("#Bad function parameter");
 				return false;
 			}
 
 			switch (argState)
 			{
 			default:
-				Serial.println("#Bad function parameter");
+				Println("#Bad function parameter");
 				return false;
 			}
 
@@ -151,7 +170,7 @@ bool ChangeMode(char* name, int nameSize)
 			{
 				if (argState == -1)
 				{
-					Serial.println("#Bad function parameter");
+					Println("#Bad function parameter");
 					return false;
 				}
 
@@ -161,7 +180,7 @@ bool ChangeMode(char* name, int nameSize)
 					speed = StringToInt(args[i].name, args[i].nameSize) / 100.0;
 					if (speed == -1)
 					{
-						Serial.println("#Cannot convert speed parameter to integer");
+						Println("#Cannot convert speed parameter to integer");
 						return false;
 					}
 					break;
@@ -171,14 +190,14 @@ bool ChangeMode(char* name, int nameSize)
 					width = StringToInt(args[i].name, args[i].nameSize);
 					if (width == -1)
 					{
-						Serial.println("#Cannot convert speed parameter to integer");
+						Println("#Cannot convert speed parameter to integer");
 						return false;
 					}
 					break;
 				}
 
 				default:
-					Serial.println("#Bad function parameter");
+					Println("#Bad function parameter");
 					return false;
 				}
 
@@ -215,7 +234,7 @@ bool ChangeMode(char* name, int nameSize)
 			{
 				if (argState == -1)
 				{
-					Serial.println("#!Bad function parameter");
+					Println("#!Bad function parameter");
 					return false;
 				}
 
@@ -226,7 +245,7 @@ bool ChangeMode(char* name, int nameSize)
 
 					if (colorsSize >= State_BurningDot::MAX_COLORS)
 					{
-						Serial.println("#!Too much colors specified");
+						Println("#!Too much colors specified");
 						break;
 					}
 
@@ -258,7 +277,7 @@ bool ChangeMode(char* name, int nameSize)
         }
 
 				default:
-					Serial.println("#Bad function parameter");
+					Println("#Bad function parameter");
 					return false;
 				}
 
@@ -303,7 +322,7 @@ bool ChangeMode(char* name, int nameSize)
 					
 
 				default:
-					Serial.println("Unknown argument");
+					Println("Unknown argument");
 					return false;
 				}
 			}
@@ -342,7 +361,7 @@ bool ChangeMode(char* name, int nameSize)
 			{
 				if (argState == -1)
 				{
-					Serial.println("#!Bad function parameter");
+					Println("#!Bad function parameter");
 					return false;
 				}
 
@@ -353,7 +372,7 @@ bool ChangeMode(char* name, int nameSize)
 
 					if (colorsSize >= State_RisingAndFalling::MAX_COLORS)
 					{
-						Serial.println("#!Too much colors specified");
+						Println("#!Too much colors specified");
 						break;
 					}
 
@@ -383,7 +402,7 @@ bool ChangeMode(char* name, int nameSize)
 				}
 
 				default:
-					Serial.println("#Bad function parameter");
+					Println("#Bad function parameter");
 					return false;
 				}
 
@@ -419,7 +438,7 @@ bool ChangeMode(char* name, int nameSize)
 			{
 				if (argState == -1)
 				{
-					Serial.println("#!Bad function parameter");
+					Println("#!Bad function parameter");
 					return false;
 				}
 
@@ -431,7 +450,7 @@ bool ChangeMode(char* name, int nameSize)
 					speed = StringToInt(args[i].name, args[i].nameSize) / 100.f;
 					if (speed == -1)
 					{
-						Serial.println("#!CannotConvertStringToInt");
+						Println("#!CannotConvertStringToInt");
 						return false;
 					}
 
@@ -441,7 +460,7 @@ bool ChangeMode(char* name, int nameSize)
 
 
 				default:
-					Serial.println("#Bad function parameter");
+					Println("#Bad function parameter");
 					return false;
 				}
 
@@ -504,7 +523,7 @@ bool ChangeMode(char* name, int nameSize)
             
   
           default:
-            Serial.println("#!Unknown argument");
+            Println("#!Unknown argument");
             return false;
           }
         }
@@ -555,12 +574,12 @@ int ReactToCommand(char* cmnd, int size)
 	{
 		debugCmnd = true;
 
-		Serial.print("Command: \"");
+		Print("Command: \"");
 		for(int i = 0;i<size;i++)
 		{
-			Serial.print(cmnd[i]);
+			Print(cmnd[i]);
 		}
-		Serial.println("\"");
+		Println("\"");
 
 		cmnd++;
 		size--;
@@ -581,24 +600,24 @@ int ReactToCommand(char* cmnd, int size)
 				argSize--;
 			}
 
-			//Serial.print("Arg size: ");
-			//Serial.println(argSize);
+			//Print("Arg size: ");
+			//Println(argSize);
 
 			Arguments<20> a = GetArguments<20>(args, argSize);
-			//Serial.print("a.size: ");
-			//Serial.println(a.size);
+			//Print("a.size: ");
+			//Println(a.size);
 
 			if (debugCmnd)
 			{
 				for (int i = 0; i < a.size; i++)
 				{
-					Serial.print(i);
-					Serial.print(") \"");
+					Print(i);
+					Print(") \"");
 					for (int k = 0; k < a[i].nameSize; k++)
 					{
-						Serial.print(a[i].name[k]);
+						Print(a[i].name[k]);
 					}
-					Serial.println("\"");
+					Println("\"");
 				}
 			}
 
@@ -606,12 +625,12 @@ int ReactToCommand(char* cmnd, int size)
 			switch(i)
 			{
 				case 0: // Test
-					/*Serial.println("Test");
+					/*Println("Test");
 					for (int i = 0; i < argSize; i++)
 					{
-						Serial.print(args[i]);
+						Print(args[i]);
 					}
-					Serial.println("\"");*/
+					Println("\"");*/
 					return true;
 
 				case 1: // Info
@@ -622,12 +641,12 @@ int ReactToCommand(char* cmnd, int size)
 						{
 							for (int i = 0; i < commandsSize; i++)
 							{
-								Serial.print("| ");
+								Print("| ");
 								for (int j = 0; j < commands[i].nameSize; j++)
 								{
-									Serial.print(commands[i].name[j]);
+									Print(commands[i].name[j]);
 								}
-								Serial.println("");
+								Println("");
 							}
 							return true;
 						}
@@ -635,7 +654,7 @@ int ReactToCommand(char* cmnd, int size)
 						{
 							for (int i = 0; i < actualState->params.size; i++)
 							{
-								Serial.print("| ");
+								Print("| ");
 								actualState->params[i].Println();
 							}
 							return true;
@@ -643,18 +662,17 @@ int ReactToCommand(char* cmnd, int size)
 						return false;
 					}
 
-					Serial.println("|===================");
-					Serial.println("| M-LED's controller");
-					Serial.print("| Version: ");
-					Serial.println(VERSION);
-					Serial.println("| Author: Minik");
-					Serial.println("| -------------------");
-					Serial.print("| Actual state: ");
+					Println("|===================");
+					Println("| M-LED's controller");
+					Print("| Version: ");
+					Println(VERSION);
+					Println("| Author: Minik");
+					Println("| -------------------");
+					Print("| Actual state: ");
 					actualState->name.Println();
-          Serial.print("| Device name: ");
-          Serial.println(DEVICE_NAME);
-
-					Serial.println("|===================");
+					Print("| Device name: ");
+					Println(DEVICE_NAME);
+					Println("|===================");
 					return true;
 				}
 
@@ -690,7 +708,7 @@ int ReactToCommand(char* cmnd, int size)
 
 						if (value < 0 || value > 255)
 						{
-							Serial.println("#!BadBrightnessValue");
+							Println("#!BadBrightnessValue");
 							return false;
 						}
 
@@ -727,7 +745,7 @@ int ReactToCommand(char* cmnd, int size)
 						int pin = StringToInt(a[1].name, a[1].nameSize);
 						if (pin < 0 || pin >= NUM_LEDS)
 						{
-							Serial.println("#!Bad pin number");
+							Println("#!Bad pin number");
 							return false;
 						}
 
@@ -739,37 +757,87 @@ int ReactToCommand(char* cmnd, int size)
 
 						return true;
 					}
+					else if (a[0] == "net_ssid")
+					{
+						if(a.size < 2)
+							return false;
+
+						String arg;
+						for(int i = 1; i < a.size; i++) {
+							for(int j = 0; j < a[i].nameSize; j++) {
+								arg.concat(a[i].name[j]);
+							}
+						}
+						
+						if(arg.length() >= 32)
+						{
+							Println("#!This device only supports up to 32 characters long SSIDs");
+							return false;
+						}
+						Configurator::Write(EEPROM_SLOT_WIFI_SSID_LENGTH, arg.length());
+						for(int i = 0;i<arg.length();i++)
+							Configurator::Write(EEPROM_SLOT_WIFI_SSID + i, arg[i]);
+
+						return true;
+						
+					}
+					else if (a[0] == "net_pass")
+					{
+						if(a.size < 2)
+							return false;
+
+						String arg;
+						for(int i = 1; i < a.size; i++) {
+							for(int j = 0; j < a[i].nameSize; j++) {
+								arg.concat(a[i].name[j]);
+							}
+						}
+						
+						if(arg.length() >= 32)
+						{
+							Println("#!This device only supports up to 32 characters long password");
+							return false;
+						}
+						Configurator::Write(EEPROM_SLOT_WIFI_PASS_LENGTH, arg.length());
+						for(int i = 0;i<arg.length();i++)
+							Configurator::Write(EEPROM_SLOT_WIFI_PASS + i, arg[i]);
+
+						return true;
+						
+					}
 					else if (a[0] == "preset")
 					{
-						if (a.size < 2)
-						{
-							return false;
-						}
+						Println("#!Presets are disabled");
+						return false;
+						// if (a.size < 2)
+						// {
+						// 	return false;
+						// }
 
-						if (a[1] == "-default")
-						{
-							Configurator::Write(EEPROM_DEFAULT_PRESET, currentPreset);
-							return true;
-						}
+						// if (a[1] == "-default")
+						// {
+						// 	Configurator::Write(EEPROM_DEFAULT_PRESET, currentPreset);
+						// 	return true;
+						// }
 
 
-						int val = StringToInt(a[1].name, a[1].nameSize);
+						// int val = StringToInt(a[1].name, a[1].nameSize);
 
-						if (val < 0)
-						{
-							Serial.println("Bad preset value");
-							return false;
-						}
-						if (val >= MAX_PRESETS)
-						{
-							Serial.println("Too big preset, not enough memory");
-							return false;
-						}
+						// if (val < 0)
+						// {
+						// 	Println("Bad preset value");
+						// 	return false;
+						// }
+						// if (val >= MAX_PRESETS)
+						// {
+						// 	Println("Too big preset, not enough memory");
+						// 	return false;
+						// }
 
-						currentPreset = val;
+						// currentPreset = val;
 
-						LoadConfig();
-						return true;
+						// LoadConfig();
+						// return true;
 					}
 
 					return false;
@@ -780,7 +848,7 @@ int ReactToCommand(char* cmnd, int size)
 
 					if (a.size == 0)
 					{
-						Serial.println("#!No arguments passed");
+						Println("#!No arguments passed");
 						return false;
 					}
 
@@ -800,7 +868,7 @@ int ReactToCommand(char* cmnd, int size)
 					}
 					else if (a[0] == "state")
 					{
-						Serial.print("| ");
+						Print("| ");
 						actualState->name.Println();
 						return true;
 					}
@@ -812,14 +880,14 @@ int ReactToCommand(char* cmnd, int size)
 						int number = StringToInt(a[1].name, a[1].nameSize);
 						if (number < 0 || number >= NUM_LEDS)
 						{
-							Serial.println("#!Bad pin number");
+							Println("#!Bad pin number");
 							return false;
 						}
 
 
 
 						ParseColorToString(leds[number], arg);
-						Serial.print("| ");
+						Print("| ");
 						arg.Println();
 
 						return true;
@@ -827,29 +895,29 @@ int ReactToCommand(char* cmnd, int size)
 					else if (a[0] == "preset")
 					{
 
-						Serial.print("| ");
-						Serial.println(currentPreset);
+						Print("| ");
+						Println(currentPreset);
 
 						return true;
 					}
 					else if(a[0] == "ledC")
 					{
-						Serial.print("| ");
-						Serial.println(NUM_LEDS);
+						Print("| ");
+						Println(NUM_LEDS);
 
 						return true;
 					}
          else if(a[0] == "potAvailable")
          {
-            Serial.print("| ");
-            Serial.println(POTENTIOMETER_ENABLED);
+            Print("| ");
+            Println(POTENTIOMETER_ENABLED);
 
             return true;
          }
          else if(a[0] == "deviceName")
          {
-            Serial.print("| ");
-            Serial.println(DEVICE_NAME);
+            Print("| ");
+            Println(DEVICE_NAME);
 
             return true;
          }
@@ -862,7 +930,7 @@ int ReactToCommand(char* cmnd, int size)
 
 					if (a.size < 2)
 					{
-						Serial.println("#!TooLittleArguments");
+						Println("#!TooLittleArguments");
 						return false;
 					}
 
@@ -887,7 +955,7 @@ int ReactToCommand(char* cmnd, int size)
 					}
 					if (paramPos == 0)
 					{
-						Serial.println("#!NotEnoughArguments");
+						Println("#!NotEnoughArguments");
 						return false;
 					}
 					a[1].nameSize--; // Because there's no space at the end
@@ -895,7 +963,7 @@ int ReactToCommand(char* cmnd, int size)
 					bool r = actualState->SetParameter(a[0], a[1]);
 					if (r == false)
 					{
-						Serial.println("#!Cannot send parameter, it may be caused by an error or wrong command / parameter");
+						Println("#!Cannot send parameter, it may be caused by an error or wrong command / parameter");
 						return false;
 					}
 
@@ -906,7 +974,7 @@ int ReactToCommand(char* cmnd, int size)
 				{
 					if (a.size == 0)
 					{
-						Serial.println("#!NoArgumentsSpecified");
+						Println("#!NoArgumentsSpecified");
 						return false;
 					}
 
@@ -914,54 +982,54 @@ int ReactToCommand(char* cmnd, int size)
 					{
 						if (a.size < 3)
 						{
-							Serial.println("#!TooLittleArgumentsSpecified");
+							Println("#!TooLittleArgumentsSpecified");
 							return false;
 						}
 
 						int addr = StringToInt(a[1].name, a[1].nameSize);
 						if (addr < 0)
 						{
-							Serial.println("#!BadAddress");
+							Println("#!BadAddress");
 							return false;
 						}
 
 						int val = StringToInt(a[2].name, a[2].nameSize);
 						if (val < 0)
 						{
-							Serial.println("#!BadValue");
+							Println("#!BadValue");
 							return false;
 						}
 						if (val > 255)
 						{
-							Serial.println("#!TooBigValue");
+							Println("#!TooBigValue");
 							return false;
 						}
 
 						Configurator::Write(addr, (unsigned char)val);
 
-						Serial.println("Written data");
+						Println("Written data");
 					}
 					else if (IsCommand("read", 4, a[0].name, a[0].nameSize))
 					{
 						if (a.size < 2)
 						{
-							Serial.println("#!TooLittleArgumentsSpecified");
+							Println("#!TooLittleArgumentsSpecified");
 							return false;
 						}
 
 						int addr = StringToInt(a[1].name, a[1].nameSize);
 						if (addr < 0)
 						{
-							Serial.println("#!BadAddress");
+							Println("#!BadAddress");
 							return false;
 						}
 
 						int val = (int)(Configurator::Read(addr));
 
-						Serial.print("EEPROM [");
-						Serial.print(addr);
-						Serial.print("] = ");
-						Serial.println(val);
+						Print("EEPROM [");
+						Print(addr);
+						Print("] = ");
+						Println(val);
 					}
 					else if(IsCommand("erase", 5, a[0].name, a[0].nameSize))
 					{
@@ -986,7 +1054,7 @@ int ReactToCommand(char* cmnd, int size)
 					bool state = actualState->GetParameter(a[0]);
 					if (!state)
 					{
-						Serial.println("#!ParameterNotFoundOrOtherError");
+						Println("#!ParameterNotFoundOrOtherError");
 						return false;
 					}
 					return true;
@@ -1001,7 +1069,7 @@ int ReactToCommand(char* cmnd, int size)
 
 						if (val < 0 || val >= MAX_PRESETS)
 						{
-							Serial.println("Wrong preset value");
+							Println("Wrong preset value");
 							return false;
 						}
 

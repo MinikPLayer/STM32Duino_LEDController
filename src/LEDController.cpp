@@ -49,8 +49,6 @@ void ChangeLED(int number, CRGB color, bool show)
 	}
 }
 
-
-WifiSerial* wSerial = nullptr;
 States defaultState = States::undefinied;
 const bool debugMode = false;
 void _setup() 
