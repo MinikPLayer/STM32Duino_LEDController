@@ -747,6 +747,8 @@ int ReactToCommand(char* cmnd, int size)
 							for(int j = 0; j < a[i].nameSize; j++) {
 								arg.concat(a[i].name[j]);
 							}
+							if(i != a.size - 1)
+								arg.concat(' ');
 						}
 						
 						if(arg.length() >= 32)
@@ -771,6 +773,8 @@ int ReactToCommand(char* cmnd, int size)
 							for(int j = 0; j < a[i].nameSize; j++) {
 								arg.concat(a[i].name[j]);
 							}
+							if(i != a.size - 1)
+								arg.concat(' ');
 						}
 						
 						if(arg.length() >= 32)
@@ -887,20 +891,20 @@ int ReactToCommand(char* cmnd, int size)
 
 						return true;
 					}
-         else if(a[0] == "potAvailable")
-         {
-            Serial_Print("| ");
-            Serial_Println(POTENTIOMETER_ENABLED);
+					else if(a[0] == "potAvailable")
+					{
+						Serial_Print("| ");
+						Serial_Println(POTENTIOMETER_ENABLED);
 
-            return true;
-         }
-         else if(a[0] == "deviceName")
-         {
-            Serial_Print("| ");
-            Serial_Println(DEVICE_NAME);
+						return true;
+					}
+					else if(a[0] == "deviceName")
+					{
+						Serial_Print("| ");
+						Serial_Println(DEVICE_NAME);
 
-            return true;
-         }
+						return true;
+					}
 
 					return false;
 				}

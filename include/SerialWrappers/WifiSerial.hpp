@@ -31,7 +31,10 @@ class WifiSerial : public Process
     const long long connectTryDelay = 1000 * 300; // Retry to connect every 5min
     long long lastConnectTry = 0;
 
-    char command[200];
+    char responseBuffer[MAX_CMND_SIZE];
+    int responseBufferPos = 0;
+
+    char command[MAX_CMND_SIZE];
     int commandPos = 0;
 
     bool shouldConnect = false;
@@ -66,6 +69,34 @@ class WifiSerial : public Process
         return true;
     }
 
+    char sendBuffer[MAX_CMND_SIZE+11];
+    int sendBufferLen = 0;
+    void PrepareResponseBuffer()
+    {
+        if(responseBufferPos == MAX_CMND_SIZE)
+            responseBufferPos--;
+
+        sendBufferLen = 0;
+        sendBuffer[sendBufferLen++] = '<';
+        sendBuffer[sendBufferLen++] = 'p';
+        sendBuffer[sendBufferLen++] = 'r';
+        sendBuffer[sendBufferLen++] = 'e';
+        sendBuffer[sendBufferLen++] = '>';
+
+        for(int i = 0;i<responseBufferPos;i++) {
+            sendBuffer[sendBufferLen++] = responseBuffer[i];
+        }
+
+        sendBuffer[sendBufferLen++] = '<';
+        sendBuffer[sendBufferLen++] = '/';
+        sendBuffer[sendBufferLen++] = 'p';
+        sendBuffer[sendBufferLen++] = 'r';
+        sendBuffer[sendBufferLen++] = 'e';
+        sendBuffer[sendBufferLen++] = '>';
+
+        sendBuffer[sendBufferLen] = '\0';
+    }
+
     void handle_OnSerial() 
     {
         for(int i = 0;i<server.args();i++) {
@@ -82,28 +113,40 @@ class WifiSerial : public Process
                     if (result == false)
                     {
                         Serial.println("[WiFi] !BadCommandSyntax");
-                        server.send(406, "text/html", "!BadCommandSyntax");
+                        println("!BadCommandSyntax");
+                        PrepareResponseBuffer();
+                        server.send(406, "text/html", sendBuffer);
                     }
                     else if (result == 2)
                     {
                         Serial.println("[WiFi] !CommandNotFound");
-                        server.send(404, "text/html", "!CommandNotFound");
+                        println("!CommandNotFound");
+                        PrepareResponseBuffer();
+                        server.send(406, "text/html", sendBuffer);
                     }
                     else if (result == 3)
                     {
                         Serial.println("[WiFi] !CommandBadArgs");
-                        server.send(400, "text/html", "!CommandBadArgs");
+                        println("!CommandBadArgs");
+                        PrepareResponseBuffer();
+                        server.send(406, "text/html", sendBuffer);
                     }
                     else if (result == true)
                     {
-                        Serial.println("[WiFi] !OK");
-                        server.send(200, "text/html", "=OK");
+                        Serial.println("[WiFi] =OK");
+                        println("=OK");
+                        PrepareResponseBuffer();
+                        server.send(406, "text/html", sendBuffer);
                     }
                     else
                     {
                         Serial.print("[WiFi] !CommandOtherError");
                         Serial.println(result);
-                        server.send(500, "text/html", "Other command error");
+
+                        print("!CommandOtherError");
+                        println(result);
+                        PrepareResponseBuffer();
+                        server.send(406, "text/html", sendBuffer);
                     }
                 }
                 else
@@ -112,6 +155,7 @@ class WifiSerial : public Process
                     server.send(405, "text/html", "!CommandNoPlusSign");
                 }
 
+                responseBufferPos = 0;
                 commandPos = 0;
 
                 return;
@@ -127,10 +171,10 @@ class WifiSerial : public Process
 
     bool Connect(String& ssid, String& pass, int timeoutCount = 100)
     {
-        Serial.println("[WiFi] Connecting...\n\n");
+        Serial.println("\n[WiFi] Connecting...\n");
         Serial.print("[WiFi] SSID: \"");
         Serial.print(ssid);
-        Serial.print("\"\n\n[WiFi] Password: \"");
+        Serial.print("\"\n[WiFi] Password: \"");
         Serial.print(pass);
         Serial.println("\"");
 
@@ -167,6 +211,8 @@ class WifiSerial : public Process
     }
 
 public:
+
+    bool reconfigure = false;
     void Init()
     {
 
@@ -180,6 +226,8 @@ public:
         }
         else {
             shouldConnect = true;
+            net_ssid.clear();
+            net_pass.clear();
 
             for(int i = 0;i<wifiSSIDLength;i++)
             {
@@ -197,16 +245,55 @@ public:
         }
 
         server.on("/serial", [this]() { handle_OnSerial(); });
-        server.on("/reconfigure", [this]() { Init(); });
+        server.on("/reconfigure", [this]() { 
+            server.send(200, "text/html", "OK!");
+            reconfigure = true;
+        });
         server.begin();
     }
 
     void Tick() override 
     {
+        if(reconfigure) {
+            Init();
+            reconfigure = false;
+            return;
+        }
+
         if(shouldConnect && (millis() - lastConnectTry > connectTryDelay) && !IsConnected()) 
             Connect(net_ssid, net_pass);
 
         server.handleClient();
+    }
+
+    void println(const char* data) {
+        while(*data != '\0' && responseBufferPos < MAX_CMND_SIZE) 
+            responseBuffer[responseBufferPos++] = *data++;
+        
+        if(responseBufferPos < MAX_CMND_SIZE - 1)
+            responseBuffer[responseBufferPos++] = '\n';
+    }
+
+    void println(int data) {
+        auto str = String(data);
+        for(int i = 0;i<str.length() && responseBufferPos < MAX_CMND_SIZE;i++) {
+            responseBuffer[responseBufferPos++] = str[i];
+        }
+
+        if(responseBufferPos < MAX_CMND_SIZE - 1)
+            responseBuffer[responseBufferPos++] = '\n';
+    }
+
+    void print(const char* data) {
+        while(*data != '\0' && responseBufferPos < MAX_CMND_SIZE) 
+            responseBuffer[responseBufferPos++] = *data++;
+    }
+
+    void print(int data) {
+        auto str = String(data);
+        for(int i = 0;i<str.length() && responseBufferPos < MAX_CMND_SIZE;i++) {
+            responseBuffer[responseBufferPos++] = str[i];
+        }
     }
 };
 

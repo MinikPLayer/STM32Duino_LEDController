@@ -49,29 +49,42 @@ void ChangeLED(int number, CRGB color, bool show)
 	}
 }
 
+WifiSerial* wSerial = nullptr;
+States defaultState = States::undefinied;
+const bool debugMode = false;
+
 void Serial_Println(int data)
 {
 	Serial.println(data);
+	if(wSerial != nullptr) {
+		wSerial->println(data);
+	}
 }
 
 void Serial_Println(const char* data)
 {
 	Serial.println(data);
+	if(wSerial != nullptr) {
+		wSerial->println(data);
+	}
 }
 
 void Serial_Print(int data) 
 {
 	Serial.print(data);
+	if(wSerial != nullptr) {
+		wSerial->print(data);
+	}
 }
 
 void Serial_Print(const char* data)
 {
 	Serial.print(data);
+	if(wSerial != nullptr) {
+		wSerial->print(data);
+	}
 }
 
-WifiSerial* wSerial = nullptr;
-States defaultState = States::undefinied;
-const bool debugMode = false;
 void _setup() 
 {
 	Configurator::Initialize();
