@@ -39,6 +39,8 @@ class WifiSerial : public Process
 
     bool shouldConnect = false;
 
+    bool apRunning = false;
+
     bool _lock = false;
     void lock()
     {
@@ -178,6 +180,7 @@ class WifiSerial : public Process
         Serial.print(pass);
         Serial.println("\"");
 
+        apRunning = false;
         WiFi.disconnect();
         WiFi.begin(ssid, pass);
         WiFi.setAutoReconnect(true);
@@ -200,6 +203,7 @@ class WifiSerial : public Process
 
     void SetupAsSoftAP()
     {
+        apRunning = true;
         WiFi.disconnect();
         Serial.println("[WiFi] Setting up as Soft AP mode");
         Serial.print("[WiFi] Using SSID \"");
@@ -260,7 +264,7 @@ public:
             return;
         }
 
-        if(shouldConnect && (millis() - lastConnectTry > connectTryDelay) && !IsConnected()) 
+        if(shouldConnect && (millis() - lastConnectTry > connectTryDelay || !apRunning) && !IsConnected()) 
             Connect(net_ssid, net_pass);
 
         server.handleClient();
