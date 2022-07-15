@@ -11,11 +11,8 @@
 
 
 
-const int commandsSize = 11;
-	Command commands[commandsSize] = {"test", "info", "set", "get", "setparam", "eeprom", "save", "getparam", "load", "easter", "juli"};
-
-
-
+const int commandsSize = 10;
+Command commands[commandsSize] = {"test", "info", "set", "get", "setparam", "eeprom", "save", "getparam", "load", "easter"};
 
 bool IsCommand(char* ogCmd, int ogSize, char* checkCmd, int checkSize)
 {
@@ -1006,11 +1003,6 @@ int ReactToCommand(char* cmnd, int size)
 					}*/
 
 					LoadConfig();
-					return true;
-				}
-				case 9: // easter :)
-				{
-					Serial.println("# I <3 KFC :3");
 					return true;
 				}
 				

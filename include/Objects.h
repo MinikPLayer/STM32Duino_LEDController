@@ -7,17 +7,17 @@
 #define COLOR_ORDER GRB
 
 #pragma region LED_DEFINES
-	#ifdef STM32
+	#ifdef DEV_STM32
 		#define LED_PIN PA7
 		#define BRIGHTNESS_PIN PA0
 		#define BRIGHTNESS_POTENTIOMETER_INPUT_PIN PC14
 	#endif
-	#ifdef ESP32
+	#ifdef DEV_ESP32
 		#define LED_PIN 13 // D13
 		#define BRIGHTNESS_PIN 12 // D12
 		#define BRIGHTNESS_POTENTIOMETER_INPUT_PIN 14 // D14
 	#endif
-	#ifdef ESP8266
+	#ifdef DEV_ESP8266
 		#define LED_PIN 15 // D13
 		#define BRIGHTNESS_PIN 12 // D12
 		#define BRIGHTNESS_POTENTIOMETER_INPUT_PIN 14 // D14

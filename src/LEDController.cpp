@@ -157,7 +157,7 @@ public:
 SerialInstance serialInstances[] = 
 {
 	SerialInstance::Create<TerminalSerial>(),
-	#if defined(ESP) 
+	#if defined(WIFI) 
 		SerialInstance::Create<WifiSerial>()
 	#endif
 };
@@ -178,6 +178,9 @@ void SerialInstance::CheckSerial()
 		{
 			if (!serial->available()) return;
 			char c = serial->read();
+
+			if(c == '\r')
+				continue;
 
 			if(c == '\n')
 			{

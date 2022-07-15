@@ -2,7 +2,7 @@
 
 #include <EEPROM.h>
 
-#ifdef ESP
+#ifdef DEV_ESP
 	#define ESP_EEPROM_SIZE 1024
 #endif
 
@@ -26,18 +26,18 @@ int FindSlot(char* name, int length)
 
 void Configurator::Initialize()
 {
-	#ifdef ESP
+	#ifdef DEV_ESP
 		EEPROM.begin(ESP_EEPROM_SIZE);
 	#endif
 }
 
 void Configurator::Erase()
 {
-	#if defined(STM32)
+	#if defined(DEV_STM32)
 		uint16_t length = 0;
 		EEPROM.count(&length);
-	#elif defined(ESP)
-		length = ESP_EEPROM_SIZE;
+	#elif defined(DEV_ESP)
+		int length = ESP_EEPROM_SIZE;
 	#else
 		auto length = EEPROM.length();
 	#endif
@@ -45,7 +45,7 @@ void Configurator::Erase()
 	for(int i = 0;i<length;i++)
 		EEPROM.write(i, 255);
 
-	#ifdef ESP32
+	#ifdef DEV_ESP
 		EEPROM.commit();
 	#endif
 }
@@ -63,7 +63,7 @@ void Configurator::Write(int address, int value)
 		value = 0;
 	}
 
-	#if defined ESP32 || defined ESP8266
+	#ifdef DEV_ESP
 		auto val = EEPROM.read(address);
 		if(val == value)
 			return;
