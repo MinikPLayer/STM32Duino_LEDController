@@ -2,9 +2,11 @@
 #define _LEDCONTROLLER_H
 
 #include "Objects.h"
-#include "SerialWrappers/WifiSerial.hpp"
 
-WifiSerial* wSerial = nullptr;
+void Serial_Println(int data);
+void Serial_Println(const char* data);
+void Serial_Print(int data);
+void Serial_Print(const char* data);
 
 void ChangeState(State* newState);
 void ChangeLED(int number, CRGB color, bool show = true);
